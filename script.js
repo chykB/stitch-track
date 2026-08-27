@@ -37,6 +37,7 @@ const nairaFormatter = new Intl.NumberFormat('en-NG', {
 const state = {
   orders: [],
   orderPendingDeletion: null,
+  lastFocusedElementBeforeDialog: null,
 };
 
 // ============================================================================
@@ -573,6 +574,7 @@ function handleStatusChange(orderId, newStatus) {
  */
 function promptDeleteOrder(order) {
   state.orderPendingDeletion = order;
+  state.lastFocusedElementBeforeDialog = document.activeElement;
   DOM.deleteClientName.textContent = order.clientName;
   DOM.deleteOverlay.removeAttribute('hidden');
   DOM.dialogCancelBtn.focus();
@@ -585,6 +587,10 @@ function dismissDeleteDialog() {
   state.orderPendingDeletion = null;
   DOM.deleteOverlay.setAttribute('hidden', '');
   DOM.deleteClientName.textContent = '';
+  if (state.lastFocusedElementBeforeDialog && typeof state.lastFocusedElementBeforeDialog.focus === 'function') {
+    state.lastFocusedElementBeforeDialog.focus();
+  }
+  state.lastFocusedElementBeforeDialog = null;
 }
 
 /**
@@ -604,10 +610,14 @@ function confirmDeleteOrder() {
   saveOrdersToStorage();
   renderOrders();
 
-  dismissDeleteDialog();
+  state.orderPendingDeletion = null;
+  state.lastFocusedElementBeforeDialog = null;
+  DOM.deleteOverlay.setAttribute('hidden', '');
+  DOM.deleteClientName.textContent = '';
+
   announceToScreenReader(`Order for ${clientName} has been deleted.`);
   
-  // Set focus to the section title or create order form for screen reader flow
+  // Set focus to the new order client name input for convenient next action
   DOM.clientNameInput.focus();
 }
 

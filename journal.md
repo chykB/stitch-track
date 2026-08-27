@@ -117,5 +117,34 @@ An honest, stage-by-stage record of the design, architectural decisions, challen
 ### What Should Happen Next
 - **Stage 5**: Verify and refine status updates and deletion workflows with accessible confirmation modals.
 
+---
+
+## Stage 5: Status Updates and Order Deletion
+
+### What Was Completed
+- Added immediate status updating capabilities directly from individual order cards:
+  - Interactive `<select>` elements dynamically linked to order state.
+  - Status updates update the UI badge immediately, synchronize localStorage, and emit an `aria-live` announcement.
+- Implemented accessible confirmation workflow for order deletions:
+  - Custom accessible confirmation modal (`role="alertdialog"`, `aria-modal="true"`).
+  - Dynamically populates the client's name in the warning description.
+  - Full keyboard trapping (Tab / Shift+Tab cycling) between Cancel and Delete buttons.
+  - Dismissal support via Escape key or clicking outside the modal.
+  - Focus retention: When deletion is cancelled, focus is cleanly restored to the specific "Delete Order" trigger button that opened it; when confirmed, focus returns to the order input form.
+
+### Decisions Made
+- **Non-blocking Custom Modal vs. Native Alert**: Native browser `confirm()` freezes the JavaScript thread and is visually inconsistent. A semantic custom dialog provides a superior UX, preserves accessibility landmarks, and allows custom keyboard management.
+- **Immediate State Synchronization**: Updating status immediately rewrites the state and `localStorage` record without requiring an extra "Save" button per card.
+
+### Challenges Encountered
+- Avoiding focus loss when closing the confirmation modal or removing a deleted card from the DOM.
+
+### How the Challenges Were Handled
+- Saved `state.lastFocusedElementBeforeDialog` upon opening the modal and restored focus to that element on cancellation; on confirmed deletion, placed focus intentionally onto `#client-name` so tailors can seamlessly enter a new order.
+
+### What Should Happen Next
+- **Stage 6**: Conduct accessibility audit, verify color contrast, error boundary resilience, and edge cases.
+
+
 
 
