@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A simple, responsive, and offline-ready clothing order tracker for independent tailors to monitor active client orders.">
+  <title>StitchTrack | Tailor Clothing Order Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Accessible Live Announcement Region for Screen Readers -->
+  <div id="live-announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon" aria-hidden="true">
+          <!-- Handcrafted Scissors/Needle SVG Emblem (Pure SVG, no external icons) -->
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="6" cy="18" r="3"></circle>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="app-title">StitchTrack</h1>
+          <p class="app-subtitle">Tailor Clothing Order Tracker</p>
+        </div>
+      </div>
+      <p class="app-description">
+        Record, monitor, and manage your client tailoring orders with ease. Everything stays safely saved on this device.
+      </p>
+    </header>
+
+    <main class="main-layout">
+      <!-- Order Creation Section -->
+      <section class="panel-section form-section" aria-labelledby="form-heading">
+        <div class="section-header">
+          <h2 id="form-heading" class="section-title">New Order</h2>
+          <p class="section-description">Fill in client details and agreed delivery date.</p>
+        </div>
+
+        <form id="order-form" class="order-form" novalidate>
+          <!-- Client Name Field -->
+          <div class="form-group" id="group-client-name">
+            <label for="client-name" class="form-label">
+              Client Name <span class="required-indicator" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="text"
+              id="client-name"
+              name="clientName"
+              class="form-input"
+              placeholder="e.g. Fatima Bello"
+              autocomplete="name"
+              required
+              aria-required="true"
+              aria-describedby="client-name-error"
+            >
+            <div id="client-name-error" class="field-error" role="alert" aria-live="polite"></div>
+          </div>
+
+          <!-- Clothing Item Field -->
+          <div class="form-group" id="group-clothing-item">
+            <label for="clothing-item" class="form-label">
+              Clothing Item <span class="required-indicator" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="text"
+              id="clothing-item"
+              name="clothingItem"
+              class="form-input"
+              placeholder="e.g. 3-Piece Agbada with Embroidery"
+              required
+              aria-required="true"
+              aria-describedby="clothing-item-error"
+            >
+            <div id="clothing-item-error" class="field-error" role="alert" aria-live="polite"></div>
+          </div>
+
+          <!-- Agreed Price Field -->
+          <div class="form-group" id="group-agreed-price">
+            <label for="agreed-price" class="form-label">
+              Agreed Price (₦) <span class="required-indicator" aria-hidden="true">*</span>
+            </label>
+            <div class="input-prefix-wrapper">
+              <span class="input-prefix" aria-hidden="true">₦</span>
+              <input
+                type="number"
+                id="agreed-price"
+                name="agreedPrice"
+                class="form-input has-prefix"
+                placeholder="45000"
+                min="1"
+                step="any"
+                required
+                aria-required="true"
+                aria-describedby="agreed-price-error"
+              >
+            </div>
+            <div id="agreed-price-error" class="field-error" role="alert" aria-live="polite"></div>
+          </div>
+
+          <!-- Delivery Date Field -->
+          <div class="form-group" id="group-delivery-date">
+            <label for="delivery-date" class="form-label">
+              Delivery Date <span class="required-indicator" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="date"
+              id="delivery-date"
+              name="deliveryDate"
+              class="form-input"
+              required
+              aria-required="true"
+              aria-describedby="delivery-date-error"
+            >
+            <div id="delivery-date-error" class="field-error" role="alert" aria-live="polite"></div>
+          </div>
+
+          <!-- Order Status Field -->
+          <div class="form-group" id="group-order-status">
+            <label for="order-status" class="form-label">Initial Order Status</label>
+            <select id="order-status" name="orderStatus" class="form-select">
+              <option value="Pending" selected>Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Ready">Ready</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+          </div>
+
+          <!-- Form Submit Button -->
+          <div class="form-actions">
+            <button type="submit" id="save-order-btn" class="btn btn-primary">
+              <span class="btn-text">Save Order</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Saved Orders Section -->
+      <section class="panel-section orders-section" aria-labelledby="orders-heading">
+        <div class="section-header orders-header-flex">
+          <div>
+            <h2 id="orders-heading" class="section-title">Saved Orders</h2>
+            <p class="section-description">Sorted by closest delivery date first.</p>
+          </div>
+          <div class="orders-count-badge" id="orders-count" aria-label="Total orders count">
+            0 Orders
+          </div>
+        </div>
+
+        <!-- Orders Container -->
+        <div id="orders-list-container" class="orders-list-container" aria-live="polite">
+          <!-- Empty State -->
+          <div id="empty-state" class="empty-state">
+            <div class="empty-state-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+            </div>
+            <h3 class="empty-state-title">No orders recorded yet</h3>
+            <p class="empty-state-text">
+              Use the form to record your first client order. It will appear here sorted by delivery date.
+            </p>
+          </div>
+
+          <!-- Active Orders List -->
+          <ul id="orders-list" class="orders-grid" aria-label="Client orders list" hidden>
+            <!-- Rendered dynamically via script.js -->
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- Accessible Custom Confirmation Dialog for Deletion -->
+    <div id="delete-dialog-overlay" class="dialog-overlay" hidden>
+      <div
+        id="delete-dialog"
+        class="dialog-card"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+        aria-describedby="dialog-description"
+      >
+        <h3 id="dialog-title" class="dialog-title">Delete Order?</h3>
+        <p id="dialog-description" class="dialog-description">
+          Are you sure you want to delete the order for <strong id="delete-client-name"></strong>? This action cannot be undone.
+        </p>
+        <div class="dialog-actions">
+          <button type="button" id="dialog-cancel-btn" class="btn btn-secondary">Cancel</button>
+          <button type="button" id="dialog-confirm-btn" class="btn btn-danger">Delete Order</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>StitchTrack &bull; Simple &amp; Reliable Workspace for Independent Tailors</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
