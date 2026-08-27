@@ -145,6 +145,39 @@ An honest, stage-by-stage record of the design, architectural decisions, challen
 ### What Should Happen Next
 - **Stage 6**: Conduct accessibility audit, verify color contrast, error boundary resilience, and edge cases.
 
+---
+
+## Stage 6: Improved Accessibility and Error Handling
+
+### What Was Completed
+- **Screen Reader Announcements**: Configured live ARIA announcements via `#live-announcer` for order creation, status changes, deletions, and storage warnings.
+- **Accessible Validation Linking**: Connected form controls directly to contextual error text nodes via `aria-describedby` and synchronized `aria-invalid` boolean states.
+- **Focus Management**:
+  - Automatically moves focus to the first invalid field upon rejected form submission.
+  - Automatically traps focus inside the deletion dialog modal.
+  - Returns focus to the trigger button if deletion is cancelled, or to `#client-name` if confirmed.
+- **Defensive Error Handling**:
+  - Sanitized `localStorage` deserialization with fallback to an empty array upon JSON parsing syntax errors or malformed array structures.
+  - Filtered incoming storage records against strict type predicates (string IDs, positive numeric prices, valid ISO dates, allowed status enums).
+  - Protected DOM against XSS attacks by using `textContent` for all client-supplied input rendering.
+- **Contrast & Motion Auditing**:
+  - Verified all color pairs exceed WCAG 2.1 AA minimum contrast standards (4.5:1 for normal text).
+  - Included `prefers-reduced-motion` CSS overrides to suppress transitions for users sensitive to motion.
+
+### Decisions Made
+- **Textual + Visual Status Indicators**: Implemented text labels alongside color badges and dot glyphs to ensure status information is fully accessible to color-blind users and high-contrast display modes.
+- **Keyboard Tab-Loop Trapping**: Used native keydown listener to cycle focus between Cancel and Delete in the dialog, preventing background tab leaks.
+
+### Challenges Encountered
+- Screen readers occasionally suppressing rapid successive announcements if identical text was sent to `aria-live` containers.
+
+### How the Challenges Were Handled
+- Cleared `DOM.liveAnnouncer.textContent` before injecting new announcement text with a 50ms setTimeout deferral to reliably trigger screen reader speech synthesizers.
+
+### What Should Happen Next
+- **Stage 7**: Perform comprehensive end-to-end browser testing and quality checks across all functional requirements.
+
+
 
 
 
