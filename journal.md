@@ -92,4 +92,30 @@ An honest, stage-by-stage record of the design, architectural decisions, challen
 ### What Should Happen Next
 - **Stage 4**: Implement order rendering, delivery-date ascending sorting, empty state management, and robust `localStorage` persistence with error recovery.
 
+---
+
+## Stage 4: Order Persistence with localStorage
+
+### What Was Completed
+- Created defensive `localStorage` loading and saving layer under key `stitchtrack_orders_v1`.
+- Built data sanity validation inside `loadOrdersFromStorage()` to handle missing, empty, or corrupt data without throwing runtime exceptions.
+- Implemented ascending delivery date sorting (`sortOrders()`) ensuring orders due earliest are shown at the top of the feed, with creation timestamps as tiebreakers.
+- Implemented safe DOM rendering in `createOrderCardElement()` and `renderOrders()` using `document.createElement`, `textContent`, and `setAttribute`, strictly avoiding any `innerHTML` interpolation of user-supplied text.
+- Integrated Nigerian Naira currency formatting via `Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' })`.
+- Handled dynamic empty state toggling when no active orders exist.
+
+### Decisions Made
+- **Zero innerHTML Interpolation**: Ensured all user input fields (`clientName`, `clothingItem`, `price`, `date`) are safely bound via `textContent` to prevent script injection vulnerabilities.
+- **Defensive Storage Schema Verification**: When loading from storage, each record is validated against field types and expected status values to prevent app crashes if localStorage was tampered with or corrupted.
+
+### Challenges Encountered
+- Preserving local date values without timezone conversion shifts (e.g., date input string `"2026-09-15"` turning into previous day in certain timezones if parsed via standard `new Date(string)`).
+
+### How the Challenges Were Handled
+- Deconstructed the date string into explicit year, month, and day components before passing into `Date.UTC` / custom date formatter, guaranteeing identical presentation across all international timezones.
+
+### What Should Happen Next
+- **Stage 5**: Verify and refine status updates and deletion workflows with accessible confirmation modals.
+
+
 
