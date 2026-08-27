@@ -60,5 +60,36 @@ An honest, stage-by-stage record of the design, architectural decisions, challen
 - Used `position: sticky; top: var(--space-6); align-items: start;` on the CSS Grid layout, ensuring the form panel remains anchored while the orders feed scrolls naturally.
 
 ### What Should Happen Next
-- **Stage 3**: Implement order creation and field-level validation logic in `script.js` with dynamic inline error messaging and accessibility state management.
+- **Stage 3**: Implement order creation and field-level validation logic in `script.js`.
+
+---
+
+## Stage 3: Order Creation and Validation
+
+### What Was Completed
+- Implemented robust, non-blocking field validation logic in `script.js`:
+  - **Client Name**: Must not be empty or whitespace only.
+  - **Clothing Item**: Must not be empty or whitespace only.
+  - **Agreed Price**: Must be a valid positive numerical amount strictly greater than 0.
+  - **Delivery Date**: Must be selected and valid.
+- Built accessible error display mechanisms:
+  - Toggled `aria-invalid="true|false"` dynamically on the input elements.
+  - Rendered inline error messages directly into `#<field>-error` nodes without using browser alerts.
+  - Added real-time `input` event listeners on all form controls to clear error states as soon as the user corrects their input.
+- Added programmatic focus management to smoothly send focus to the first invalid field upon form submission failure.
+- Implemented utility functions for collision-resistant unique ID generation (`ord_<timestamp>_<random>`) and international Nigerian Naira currency formatting (`Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' })`).
+
+### Decisions Made
+- **Real-Time Error Clearing**: Rather than waiting for another submit click, clearing error states on typing provides immediate feedback and reduces tailor frustration when entering rapid orders.
+- **Strict Number and Whitespace Sanitization**: Added `.trim()` checks and `parseFloat() > 0` validation to prevent whitespace-only client entries or negative price anomalies.
+
+### Challenges Encountered
+- Ensuring that screen readers announce the exact reason a form failed validation when navigating directly to the first invalid input.
+
+### How the Challenges Were Handled
+- Connected each input to its dedicated error container with `aria-describedby` and marked the error container with `role="alert"` so assistive technology reads the error text as soon as the field is focused.
+
+### What Should Happen Next
+- **Stage 4**: Implement order rendering, delivery-date ascending sorting, empty state management, and robust `localStorage` persistence with error recovery.
+
 
