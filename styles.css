@@ -1,68 +1,76 @@
 /* ==========================================================================
-   StitchTrack - Tailor Clothing Order Tracker
-   Vanilla CSS Design System & Responsive Stylesheet
+   StitchTrack - Tailoring Atelier Order Board
+   Bespoke Design System & Responsive Stylesheet
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   CSS Custom Properties (Design Tokens)
-   Inspired by tailoring ateliers: warm stone, rich linen, craft amber & charcoal
+   1. CSS Custom Properties (Atelier Design Tokens)
    -------------------------------------------------------------------------- */
 :root {
-  /* Core Palette */
-  --bg-app: #f7f5f0;
-  --bg-surface: #ffffff;
-  --bg-surface-elevated: #faf8f5;
-  --bg-subtle: #eee9df;
-  --border-subtle: #e2dbcd;
-  --border-strong: #c8beac;
+  /* Palette: Warm Ivory, Linen Paper, Espresso & Terracotta */
+  --bg-app: #F7F1E7;
+  --bg-surface: #FFFCF7;
+  --bg-surface-elevated: #FFF9F2;
+  --bg-subtle: #EFE8DC;
   
-  /* Text Colors */
-  --text-primary: #1c1a17;
-  --text-secondary: #5a544b;
-  --text-muted: #837c72;
-  --text-inverse: #ffffff;
+  --border-soft-thread: #D8C5AD;
+  --border-card: #EADBCE;
+  --border-strong: #C4B097;
 
-  /* Brand / Accent Color: Warm Terracotta / Tailor Bronze */
-  --accent-primary: #a84b16;
-  --accent-hover: #8f3e10;
-  --accent-light: #fbf0e8;
-  --accent-subtle: #f4dfd0;
-  --accent-focus-ring: rgba(168, 75, 22, 0.35);
+  /* Typography Colors */
+  --text-espresso: #2A211B;
+  --text-secondary: #6E6258;
+  --text-muted: #8E8276;
+  --text-inverse: #FFFFFF;
 
-  /* Status Badges & Borders (High contrast, WCAG AA compliant) */
-  --status-pending-bg: #fff7ed;
-  --status-pending-text: #9a3412;
-  --status-pending-border: #fed7aa;
+  /* Brand Accents */
+  --accent-terracotta: #A94F2B;
+  --accent-terracotta-hover: #8E3E1F;
+  --accent-terracotta-light: #FBF2ED;
+  --accent-terracotta-ring: rgba(169, 79, 43, 0.3);
 
-  --status-progress-bg: #eff6ff;
-  --status-progress-text: #1e40af;
-  --status-progress-border: #bfdbfe;
+  --accent-brass: #B68A52;
+  --accent-brass-light: #F9F4EB;
 
-  --status-ready-bg: #ecfdf5;
-  --status-ready-text: #065f46;
-  --status-ready-border: #a7f3d0;
+  /* Status Colors (WCAG AA Compliant) */
+  --status-pending-bg: #FFF7ED;
+  --status-pending-text: #9A3412;
+  --status-pending-border: #FDBA74;
 
-  --status-delivered-bg: #f3f4f6;
+  --status-progress-bg: #EFF6FF;
+  --status-progress-text: #1E40AF;
+  --status-progress-border: #93C5FD;
+
+  --status-ready-bg: #ECFDF5;
+  --status-ready-text: #065F46;
+  --status-ready-border: #6EE7B7;
+
+  --status-delivered-bg: #F4F3F0;
   --status-delivered-text: #374151;
-  --status-delivered-border: #d1d5db;
+  --status-delivered-border: #D1D5DB;
 
-  /* Danger / Error State */
-  --danger-primary: #b91c1c;
-  --danger-hover: #991b1b;
-  --danger-bg: #fef2f2;
-  --danger-border: #fecaca;
+  /* Error Colors */
+  --color-error-text: #B42318;
+  --color-error-bg: #FEF3F2;
+  --color-error-border: #FECDCA;
 
-  /* Typography */
-  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-size-xs: 0.75rem;    /* 12px */
-  --font-size-sm: 0.875rem;   /* 14px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-md: 1.125rem;   /* 18px */
-  --font-size-lg: 1.25rem;    /* 20px */
-  --font-size-xl: 1.5rem;     /* 24px */
-  --font-size-2xl: 1.875rem;  /* 30px */
+  /* Typography Stacks */
+  --font-serif: 'Georgia', 'Times New Roman', 'Baskerville', serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
-  /* Spacing */
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-subtle: 0 1px 3px rgba(42, 33, 27, 0.04);
+  --shadow-card: 0 2px 8px rgba(42, 33, 27, 0.06), 0 1px 2px rgba(42, 33, 27, 0.04);
+  --shadow-card-hover: 0 8px 20px -2px rgba(42, 33, 27, 0.1), 0 2px 6px rgba(42, 33, 27, 0.05);
+  --shadow-modal: 0 16px 36px -4px rgba(42, 33, 27, 0.25);
+
+  /* Spacing Units */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -71,31 +79,20 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
   --space-10: 2.5rem;
-  --space-12: 3rem;
-
-  /* Radii */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(28, 26, 23, 0.05);
-  --shadow-md: 0 4px 12px rgba(28, 26, 23, 0.07);
-  --shadow-lg: 0 12px 28px -4px rgba(28, 26, 23, 0.12);
-
-  /* Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --------------------------------------------------------------------------
-   Reset & Base Styles
+   2. Reset & Critical [hidden] Rule
    -------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* Critical Fix: Ensure hidden attribute reliably hides elements regardless of display property */
+[hidden] {
+  display: none !important;
 }
 
 html {
@@ -104,18 +101,22 @@ html {
 }
 
 body {
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  line-height: 1.5;
-  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.55;
+  color: var(--text-espresso);
   background-color: var(--bg-app);
+  /* Subtle tailoring linen texture */
+  background-image: radial-gradient(var(--border-soft-thread) 0.65px, transparent 0.65px), radial-gradient(var(--border-soft-thread) 0.65px, var(--bg-app) 0.65px);
+  background-size: 26px 26px;
+  background-position: 0 0, 13px 13px;
   min-height: 100vh;
   padding: var(--space-4) var(--space-4) var(--space-10);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Accessibility: Visually Hidden for Screen Readers */
+/* Screen reader utility */
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -128,11 +129,21 @@ body {
   border-width: 0;
 }
 
+/* Programmatic focus targets */
+[tabindex="-1"]:focus:not(:focus-visible) {
+  outline: none;
+}
+
+[tabindex="-1"]:focus-visible {
+  outline: 2px solid var(--accent-terracotta);
+  outline-offset: 2px;
+}
+
 /* --------------------------------------------------------------------------
-   Layout Containers
+   3. Main Application Container
    -------------------------------------------------------------------------- */
 .app-container {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -140,63 +151,96 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   Header
+   4. Atelier Header & Brand Area
    -------------------------------------------------------------------------- */
 .app-header {
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-soft-thread);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  padding: var(--space-5) var(--space-6);
+  box-shadow: var(--shadow-subtle);
+  position: relative;
 }
 
-.header-brand {
+.header-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .header-main {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+}
+
+.brand-group {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-2);
+  gap: var(--space-3);
 }
 
-.brand-icon {
+.brand-emblem {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-md);
-  background-color: var(--accent-light);
-  color: var(--accent-primary);
-  border: 1px solid var(--accent-subtle);
+  background-color: var(--accent-terracotta-light);
+  color: var(--accent-terracotta);
+  border: 1px solid var(--border-soft-thread);
   flex-shrink: 0;
 }
 
 .app-title {
-  font-size: var(--font-size-2xl);
+  font-family: var(--font-serif);
+  font-size: 1.625rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  color: var(--text-espresso);
   line-height: 1.15;
 }
 
-.app-subtitle {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--accent-primary);
+.brand-subtitle {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--accent-brass);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
+  letter-spacing: 0.08em;
+  margin-top: 1px;
 }
 
-.app-description {
-  font-size: var(--font-size-sm);
+.header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+@media (min-width: 768px) {
+  .header-meta {
+    text-align: right;
+    max-width: 440px;
+  }
+}
+
+.app-tagline {
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  max-width: 650px;
-  margin-top: var(--space-3);
-  line-height: 1.6;
+  line-height: 1.4;
+}
+
+.storage-notice {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
 }
 
 /* --------------------------------------------------------------------------
-   Main Content Layout (Responsive Mobile-First to 2-Column Desktop)
+   5. Main Content Layout (Order Slip + Order Board)
    -------------------------------------------------------------------------- */
 .main-layout {
   display: grid;
@@ -205,57 +249,68 @@ body {
   align-items: start;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 960px) {
   .main-layout {
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: 360px 1fr;
     gap: var(--space-8);
   }
 
   .form-section {
     position: sticky;
-    top: var(--space-6);
-  }
-}
-
-@media (min-width: 1100px) {
-  .main-layout {
-    grid-template-columns: 410px 1fr;
+    top: var(--space-5);
   }
 }
 
 /* --------------------------------------------------------------------------
-   Panels & Section Cards
+   6. Panel & Section Containers
    -------------------------------------------------------------------------- */
 .panel-section {
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-card);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+
+@media (min-width: 640px) {
+  .panel-section {
+    padding: var(--space-6);
+  }
 }
 
 .section-header {
   margin-bottom: var(--space-5);
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  /* Tailoring stitched dashed line */
+  border-bottom: 1.5px dashed var(--border-soft-thread);
+}
+
+.section-tag {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--accent-brass);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
 }
 
 .section-title {
-  font-size: var(--font-size-lg);
+  font-family: var(--font-serif);
+  font-size: 1.3125rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-espresso);
   letter-spacing: -0.01em;
 }
 
 .section-description {
-  font-size: var(--font-size-xs);
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  margin-top: var(--space-1);
+  margin-top: 2px;
 }
 
 .orders-header-flex {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
   flex-wrap: wrap;
@@ -264,17 +319,18 @@ body {
 .orders-count-badge {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-1) var(--space-3);
+  padding: 0.25rem 0.75rem;
   background-color: var(--bg-subtle);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-soft-thread);
   border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-espresso);
+  font-variant-numeric: tabular-nums;
 }
 
 /* --------------------------------------------------------------------------
-   Form Styles & Accessible Controls
+   7. Order Slip Form Styles
    -------------------------------------------------------------------------- */
 .order-form {
   display: flex;
@@ -285,36 +341,36 @@ body {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 4px;
 }
 
 .form-label {
-  font-size: var(--font-size-sm);
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-espresso);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
 .required-indicator {
-  color: var(--accent-primary);
-  font-weight: bold;
+  color: var(--accent-terracotta);
+  font-weight: 700;
 }
 
 .form-input,
 .form-select {
   width: 100%;
-  font-family: inherit;
-  font-size: var(--font-size-base);
-  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--text-espresso);
   background-color: var(--bg-surface-elevated);
-  border: 1.5px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  padding: 0.65rem 0.85rem;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
-  outline: none;
+  padding: 0.6rem 0.8rem;
   min-height: 44px; /* Accessible touch target */
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+  outline: none;
 }
 
 .form-input::placeholder {
@@ -323,24 +379,24 @@ body {
 
 .form-input:focus,
 .form-select:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px var(--accent-focus-ring);
-  background-color: var(--bg-surface);
+  border-color: var(--accent-terracotta);
+  box-shadow: 0 0 0 3px var(--accent-terracotta-ring);
+  background-color: #FFFFFF;
 }
 
 .form-input.is-invalid,
 .form-select.is-invalid {
-  border-color: var(--danger-primary);
-  background-color: var(--danger-bg);
+  border-color: var(--color-error-text);
+  background-color: var(--color-error-bg);
 }
 
 .form-input.is-invalid:focus,
 .form-select.is-invalid:focus {
-  border-color: var(--danger-primary);
-  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.25);
+  border-color: var(--color-error-text);
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.2);
 }
 
-/* Input Prefix (Currency Symbol) */
+/* Input Prefix (Naira symbol) */
 .input-prefix-wrapper {
   position: relative;
   display: flex;
@@ -349,7 +405,7 @@ body {
 
 .input-prefix {
   position: absolute;
-  left: 0.85rem;
+  left: 0.8rem;
   color: var(--text-secondary);
   font-weight: 600;
   pointer-events: none;
@@ -357,17 +413,17 @@ body {
 }
 
 .form-input.has-prefix {
-  padding-left: 2.25rem;
+  padding-left: 2.15rem;
 }
 
 /* Inline Field Error Messages */
 .field-error {
-  font-size: var(--font-size-xs);
+  font-size: 0.75rem;
   font-weight: 500;
-  color: var(--danger-primary);
-  min-height: 1.1rem;
+  color: var(--color-error-text);
+  min-height: 1rem;
   display: none;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .field-error.visible {
@@ -375,87 +431,44 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   Buttons
+   8. Buttons
    -------------------------------------------------------------------------- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  font-family: inherit;
-  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
   font-weight: 600;
   border-radius: var(--radius-md);
-  padding: 0.65rem 1.25rem;
+  padding: 0.625rem 1.25rem;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  text-decoration: none;
   min-height: 44px; /* Accessible touch target */
+  transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+  text-decoration: none;
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--accent-terracotta);
   outline-offset: 2px;
 }
 
+/* Primary Atelier Button */
 .btn-primary {
-  background-color: var(--accent-primary);
+  background-color: var(--accent-terracotta);
   color: var(--text-inverse);
-  box-shadow: 0 2px 4px rgba(168, 75, 22, 0.2);
+  box-shadow: 0 1px 3px rgba(169, 79, 43, 0.3);
 }
 
 .btn-primary:hover {
-  background-color: var(--accent-hover);
-  box-shadow: 0 4px 8px rgba(168, 75, 22, 0.3);
+  background-color: var(--accent-terracotta-hover);
+  box-shadow: 0 3px 6px rgba(169, 79, 43, 0.35);
 }
 
 .btn-primary:active {
   transform: translateY(1px);
-}
-
-.btn-secondary {
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  border-color: var(--border-strong);
-}
-
-.btn-secondary:hover {
-  background-color: var(--bg-subtle);
-  border-color: var(--text-secondary);
-}
-
-.btn-danger {
-  background-color: var(--danger-primary);
-  color: var(--text-inverse);
-}
-
-.btn-danger:hover {
-  background-color: var(--danger-hover);
-}
-
-.btn-danger:focus-visible {
-  outline: 2px solid var(--danger-primary);
-  outline-offset: 2px;
-}
-
-.btn-danger-ghost {
-  background-color: transparent;
-  color: var(--danger-primary);
-  border: 1px solid var(--danger-border);
-  padding: 0.4rem 0.75rem;
-  font-size: var(--font-size-xs);
-  min-height: 36px;
-}
-
-.btn-danger-ghost:hover {
-  background-color: var(--danger-bg);
-  border-color: var(--danger-primary);
-}
-
-.btn-danger-ghost:focus-visible {
-  outline: 2px solid var(--danger-primary);
-  outline-offset: 2px;
 }
 
 .form-actions {
@@ -466,8 +479,54 @@ body {
   width: 100%;
 }
 
+.btn-secondary {
+  background-color: var(--bg-surface);
+  color: var(--text-espresso);
+  border-color: var(--border-strong);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-subtle);
+  border-color: var(--text-secondary);
+}
+
+.btn-danger {
+  background-color: var(--color-error-text);
+  color: var(--text-inverse);
+}
+
+.btn-danger:hover {
+  background-color: #911A10;
+}
+
+.btn-danger:focus-visible {
+  outline: 2px solid var(--color-error-text);
+  outline-offset: 2px;
+}
+
+/* Card Delete Ghost Button */
+.btn-danger-ghost {
+  background-color: transparent;
+  color: var(--color-error-text);
+  border: 1px solid var(--color-error-border);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.6875rem;
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-danger-ghost:hover {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error-text);
+}
+
+.btn-danger-ghost:focus-visible {
+  outline: 2px solid var(--color-error-text);
+  outline-offset: 2px;
+}
+
 /* --------------------------------------------------------------------------
-   Empty State
+   9. Tailoring Empty State
    -------------------------------------------------------------------------- */
 .empty-state {
   display: flex;
@@ -475,9 +534,10 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--space-10) var(--space-4);
+  padding: var(--space-8) var(--space-4);
   background-color: var(--bg-surface-elevated);
-  border: 2px dashed var(--border-strong);
+  /* Tailoring stitched border */
+  border: 1.5px dashed var(--border-soft-thread);
   border-radius: var(--radius-lg);
 }
 
@@ -485,30 +545,31 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
+  width: 58px;
+  height: 58px;
   border-radius: var(--radius-full);
-  background-color: var(--bg-subtle);
-  color: var(--text-muted);
-  margin-bottom: var(--space-4);
+  background-color: var(--accent-brass-light);
+  color: var(--accent-brass);
+  margin-bottom: var(--space-3);
 }
 
 .empty-state-title {
-  font-size: var(--font-size-md);
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--space-2);
+  color: var(--text-espresso);
+  margin-bottom: var(--space-1);
 }
 
 .empty-state-text {
-  font-size: var(--font-size-sm);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  max-width: 380px;
-  line-height: 1.5;
+  max-width: 340px;
+  line-height: 1.45;
 }
 
 /* --------------------------------------------------------------------------
-   Orders Grid & Order Cards
+   10. Order Cards & Order Board Grid
    -------------------------------------------------------------------------- */
 .orders-grid {
   list-style: none;
@@ -523,23 +584,27 @@ body {
   }
 }
 
+/* Atelier Work Ticket Card */
 .order-card {
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-card);
+  /* Stitched left border highlight */
+  border-left: 4px solid var(--accent-terracotta);
   border-radius: var(--radius-md);
-  padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: var(--space-4);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  gap: var(--space-3);
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
   position: relative;
 }
 
 .order-card:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
+  border-left-color: var(--accent-terracotta-hover);
+  box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
 }
 
@@ -551,29 +616,32 @@ body {
 }
 
 .order-client-name {
-  font-size: var(--font-size-md);
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-espresso);
   word-break: break-word;
-  line-height: 1.3;
+  overflow-wrap: break-word;
+  line-height: 1.25;
 }
 
 .order-clothing-item {
-  font-size: var(--font-size-sm);
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
-  margin-top: 4px;
+  margin-top: 3px;
   word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Status Badges */
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: var(--font-size-xs);
+  gap: 5px;
+  font-size: 0.6875rem;
   font-weight: 700;
-  padding: 0.3rem 0.65rem;
+  padding: 0.25rem 0.55rem;
   border-radius: var(--radius-full);
   border: 1px solid transparent;
   white-space: nowrap;
@@ -584,8 +652,8 @@ body {
 .status-badge::before {
   content: '';
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: var(--radius-full);
   background-color: currentColor;
 }
@@ -614,14 +682,15 @@ body {
   border-color: var(--status-delivered-border);
 }
 
-/* Order Details Key-Value Section */
+/* Ticket Details Section */
 .order-details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  /* Dashed ticket separator */
+  border-top: 1px dashed var(--border-soft-thread);
+  border-bottom: 1px dashed var(--border-soft-thread);
 }
 
 .detail-item {
@@ -630,67 +699,65 @@ body {
 }
 
 .detail-label {
-  font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 .detail-value {
-  font-size: var(--font-size-sm);
+  font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-top: 2px;
+  color: var(--text-espresso);
+  margin-top: 1px;
 }
 
 .detail-value.price-value {
-  color: var(--accent-primary);
-  font-size: var(--font-size-md);
+  color: var(--accent-terracotta);
+  font-size: 0.9375rem;
   font-variant-numeric: tabular-nums;
 }
 
 .detail-value.date-value {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-size: 0.8125rem;
 }
 
-/* Card Interactive Footer Controls */
+/* Card Interactive Actions */
 .order-card-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .card-status-changer {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .card-status-label {
-  font-size: var(--font-size-xs);
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
 
 .card-status-select {
-  font-family: inherit;
-  font-size: var(--font-size-xs);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-espresso);
   background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  padding: 0.4rem 0.6rem;
+  padding: 0.35rem 0.55rem;
   min-height: 36px;
   cursor: pointer;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .card-status-select:focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--accent-terracotta);
   outline-offset: 1px;
 }
 
@@ -698,15 +765,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  margin-top: 2px;
 }
 
 /* --------------------------------------------------------------------------
-   Confirmation Modal Dialog
+   11. Confirmation Modal Dialog
    -------------------------------------------------------------------------- */
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(28, 26, 23, 0.6);
+  background-color: rgba(42, 33, 27, 0.65);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -715,25 +783,21 @@ body {
   z-index: 1000;
 }
 
-.dialog-overlay[hidden] {
-  display: none !important;
-}
-
 .dialog-card {
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-soft-thread);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
-  max-width: 440px;
+  max-width: 420px;
   width: 100%;
-  box-shadow: var(--shadow-lg);
-  animation: dialogScaleIn 180ms ease-out;
+  box-shadow: var(--shadow-modal);
+  animation: dialogFadeIn 150ms ease-out;
 }
 
-@keyframes dialogScaleIn {
+@keyframes dialogFadeIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
@@ -741,22 +805,32 @@ body {
   }
 }
 
-.dialog-title {
-  font-size: var(--font-size-lg);
+.dialog-header-tag {
+  font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-error-text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+.dialog-title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-espresso);
   margin-bottom: var(--space-2);
 }
 
 .dialog-description {
-  font-size: var(--font-size-sm);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   line-height: 1.5;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
 }
 
 .dialog-description strong {
-  color: var(--text-primary);
+  color: var(--text-espresso);
 }
 
 .dialog-actions {
@@ -767,18 +841,19 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   Footer
+   12. Footer
    -------------------------------------------------------------------------- */
 .app-footer {
   text-align: center;
   padding-top: var(--space-6);
-  font-size: var(--font-size-xs);
+  font-size: 0.75rem;
   color: var(--text-muted);
-  border-top: 1px solid var(--border-subtle);
+  /* Tailoring stitched top border */
+  border-top: 1.5px dashed var(--border-soft-thread);
 }
 
 /* --------------------------------------------------------------------------
-   High Contrast & Accessibility Media Queries
+   13. Reduced Motion Support
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

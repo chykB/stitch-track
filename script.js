@@ -617,8 +617,22 @@ function confirmDeleteOrder() {
 
   announceToScreenReader(`Order for ${clientName} has been deleted.`);
   
-  // Set focus to the new order client name input for convenient next action
-  DOM.clientNameInput.focus();
+  // Manage focus logically based on remaining orders:
+  if (state.orders.length > 0) {
+    // If other orders remain, move focus to the Saved Orders heading
+    const ordersHeading = document.getElementById('orders-heading');
+    if (ordersHeading) {
+      ordersHeading.focus();
+    }
+  } else {
+    // If the final order was deleted, move focus to the empty state container
+    const emptyStateEl = document.getElementById('empty-state');
+    if (emptyStateEl) {
+      emptyStateEl.focus();
+    } else {
+      DOM.clientNameInput.focus();
+    }
+  }
 }
 
 // ============================================================================

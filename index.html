@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="A simple, responsive, and offline-ready clothing order tracker for independent tailors to monitor active client orders.">
-  <title>StitchTrack | Tailor Clothing Order Tracker</title>
+  <meta name="description" content="A crafted, responsive clothing order tracker for independent tailors and bespoke ateliers.">
+  <title>StitchTrack | Tailoring Atelier Order Board</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,34 +12,40 @@
   <div id="live-announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
 
   <div class="app-container">
+    <!-- Atelier Header & Brand Area -->
     <header class="app-header">
-      <div class="header-brand">
-        <div class="brand-icon" aria-hidden="true">
-          <!-- Handcrafted Scissors/Needle SVG Emblem (Pure SVG, no external icons) -->
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="6" cy="6" r="3"></circle>
-            <circle cx="6" cy="18" r="3"></circle>
-            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
-            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
-            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
-          </svg>
+      <div class="header-main">
+        <div class="brand-group">
+          <div class="brand-emblem" aria-hidden="true">
+            <!-- Bespoke Tailor Shears & Needle SVG Motif -->
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="6" cy="6" r="3"></circle>
+              <circle cx="6" cy="18" r="3"></circle>
+              <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+              <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+              <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <div class="brand-titles">
+            <h1 class="app-title">StitchTrack</h1>
+            <p class="brand-subtitle">Atelier Order Tracker</p>
+          </div>
         </div>
-        <div class="brand-text">
-          <h1 class="app-title">StitchTrack</h1>
-          <p class="app-subtitle">Tailor Clothing Order Tracker</p>
+        <div class="header-meta">
+          <p class="app-tagline">Keep every client order, deadline, and progress update in one place.</p>
+          <span class="storage-notice">Orders are saved in this browser on this device.</span>
         </div>
       </div>
-      <p class="app-description">
-        Record, monitor, and manage your client tailoring orders with ease. Your orders are saved in this browser on this device.
-      </p>
     </header>
 
+    <!-- Main Workspace (Order Slip Form + Order Board) -->
     <main class="main-layout">
-      <!-- Order Creation Section -->
+      <!-- Order Slip Creation Section -->
       <section class="panel-section form-section" aria-labelledby="form-heading">
         <div class="section-header">
-          <h2 id="form-heading" class="section-title">New Order</h2>
-          <p class="section-description">Fill in client details and agreed delivery date.</p>
+          <div class="section-tag" aria-hidden="true">Order Slip</div>
+          <h2 id="form-heading" class="section-title">Create an Order</h2>
+          <p class="section-description">Record the agreed details before work begins.</p>
         </div>
 
         <form id="order-form" class="order-form" novalidate>
@@ -122,7 +128,7 @@
 
           <!-- Order Status Field -->
           <div class="form-group" id="group-order-status">
-            <label for="order-status" class="form-label">Initial Order Status</label>
+            <label for="order-status" class="form-label">Initial Status</label>
             <select id="order-status" name="orderStatus" class="form-select">
               <option value="Pending" selected>Pending</option>
               <option value="In Progress">In Progress</option>
@@ -134,18 +140,19 @@
           <!-- Form Submit Button -->
           <div class="form-actions">
             <button type="submit" id="save-order-btn" class="btn btn-primary">
-              <span class="btn-text">Save Order</span>
+              <span class="btn-text">Record Order</span>
             </button>
           </div>
         </form>
       </section>
 
-      <!-- Saved Orders Section -->
+      <!-- Order Board Section -->
       <section class="panel-section orders-section" aria-labelledby="orders-heading">
         <div class="section-header orders-header-flex">
           <div>
-            <h2 id="orders-heading" class="section-title">Saved Orders</h2>
-            <p class="section-description">Sorted by closest delivery date first.</p>
+            <div class="section-tag" aria-hidden="true">Studio Board</div>
+            <h2 id="orders-heading" class="section-title" tabindex="-1">Order Board</h2>
+            <p class="section-description">Upcoming work, arranged by delivery date.</p>
           </div>
           <div class="orders-count-badge" id="orders-count" aria-label="Total orders count">
             0 Orders
@@ -154,22 +161,27 @@
 
         <!-- Orders Container -->
         <div id="orders-list-container" class="orders-list-container" aria-live="polite">
-          <!-- Empty State -->
-          <div id="empty-state" class="empty-state">
+          <!-- Empty State (Tailoring Specific) -->
+          <div id="empty-state" class="empty-state" tabindex="-1">
             <div class="empty-state-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              <!-- Tailor Spool & Needle Vector -->
+              <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 3h10v3H7z"></path>
+                <path d="M7 18h10v3H7z"></path>
+                <path d="M9 6v12"></path>
+                <path d="M15 6v12"></path>
+                <path d="M9 10h6"></path>
+                <path d="M9 14h6"></path>
+                <path d="M18 10l3-3m0 0l-2-2m2 2l-6 6"></path>
               </svg>
             </div>
-            <h3 class="empty-state-title">No orders recorded yet</h3>
+            <h3 class="empty-state-title">No clothing orders yet</h3>
             <p class="empty-state-text">
-              Use the form to record your first client order. It will appear here sorted by delivery date.
+              Create your first order to begin tracking client work and delivery dates.
             </p>
           </div>
 
-          <!-- Active Orders List -->
+          <!-- Active Orders Board -->
           <ul id="orders-list" class="orders-grid" aria-label="Client orders list" hidden>
             <!-- Rendered dynamically via script.js -->
           </ul>
@@ -187,6 +199,7 @@
         aria-labelledby="dialog-title"
         aria-describedby="dialog-description"
       >
+        <div class="dialog-header-tag" aria-hidden="true">Confirmation</div>
         <h3 id="dialog-title" class="dialog-title">Delete Order?</h3>
         <p id="dialog-description" class="dialog-description">
           Are you sure you want to delete the order for <strong id="delete-client-name"></strong>? This action cannot be undone.
@@ -198,9 +211,9 @@
       </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Atelier Footer -->
     <footer class="app-footer">
-      <p>StitchTrack &bull; Simple &amp; Reliable Workspace for Independent Tailors</p>
+      <p>StitchTrack &bull; Crafted for Independent Tailors &amp; Bespoke Studios</p>
     </footer>
   </div>
 
