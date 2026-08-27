@@ -140,9 +140,118 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   3. Main Application Container
+   3. Decorative Background Watermark Motifs (Atelier Atmosphere)
+   -------------------------------------------------------------------------- */
+.atelier-motifs {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  color: var(--accent-brass);
+}
+
+.motif {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Motif 1: Curved Measuring Tape (Upper-Right outer background) */
+.motif-tape {
+  top: -40px;
+  right: -50px;
+  width: 320px;
+  height: 320px;
+  transform: rotate(18deg);
+  opacity: 0.038;
+}
+
+/* Motif 2: Tailor Shears (Lower-Left outer background) */
+.motif-shears {
+  bottom: -60px;
+  left: -50px;
+  width: 360px;
+  height: 360px;
+  transform: rotate(-25deg);
+  opacity: 0.035;
+  color: var(--accent-terracotta);
+}
+
+/* Motif 3: Wooden Thread Spool (Lower-Right corner) */
+.motif-spool {
+  bottom: 20px;
+  right: -40px;
+  width: 260px;
+  height: 260px;
+  transform: rotate(14deg);
+  opacity: 0.035;
+}
+
+/* Motif 4: Sewing Needle & Flowing Thread (Mid-Left edge) */
+.motif-needle {
+  top: 320px;
+  left: -60px;
+  width: 280px;
+  height: 280px;
+  transform: rotate(-35deg);
+  opacity: 0.032;
+  color: var(--border-strong);
+}
+
+/* Tablet adjustments (640px - 959px) */
+@media (max-width: 959px) {
+  .motif-needle {
+    display: none; /* Keep 3 motifs on tablet */
+  }
+  .motif-tape {
+    width: 260px;
+    height: 260px;
+    top: -30px;
+    right: -40px;
+  }
+  .motif-shears {
+    width: 280px;
+    height: 280px;
+    bottom: -40px;
+    left: -40px;
+  }
+  .motif-spool {
+    width: 220px;
+    height: 220px;
+    bottom: 10px;
+    right: -30px;
+  }
+}
+
+/* Mobile adjustments (< 640px) */
+@media (max-width: 639px) {
+  .motif-shears,
+  .motif-needle {
+    display: none; /* Keep only 2 faint corner motifs on mobile */
+  }
+  .motif-tape {
+    width: 180px;
+    height: 180px;
+    top: -30px;
+    right: -30px;
+    opacity: 0.028;
+  }
+  .motif-spool {
+    width: 160px;
+    height: 160px;
+    bottom: -20px;
+    right: -30px;
+    opacity: 0.028;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Main Application Container
    -------------------------------------------------------------------------- */
 .app-container {
+  position: relative;
+  z-index: 1;
   max-width: 1240px;
   margin: 0 auto;
   display: flex;
@@ -231,12 +340,6 @@ body {
   font-size: 0.8125rem;
   color: var(--text-secondary);
   line-height: 1.4;
-}
-
-.storage-notice {
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  letter-spacing: 0.01em;
 }
 
 /* --------------------------------------------------------------------------

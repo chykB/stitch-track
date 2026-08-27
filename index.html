@@ -11,6 +11,70 @@
   <!-- Accessible Live Announcement Region for Screen Readers -->
   <div id="live-announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
 
+  <!-- Decorative Atelier Watermark Background Motifs (Faint, Outline Only, Non-Interactive) -->
+  <div class="atelier-motifs" aria-hidden="true">
+    <!-- Motif 1: Curved Measuring Tape (Upper Right) -->
+    <svg class="motif motif-tape" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 160 C 50 120, 80 180, 120 130 C 160 80, 140 30, 180 20"></path>
+      <path d="M25 170 C 55 130, 85 190, 125 140 C 165 90, 145 40, 185 30"></path>
+      <!-- Tick Marks -->
+      <line x1="33" y1="147" x2="38" y2="157"></line>
+      <line x1="48" y1="135" x2="53" y2="145"></line>
+      <line x1="64" y1="142" x2="68" y2="152"></line>
+      <line x1="82" y1="158" x2="86" y2="168"></line>
+      <line x1="100" y1="155" x2="104" y2="165"></line>
+      <line x1="118" y1="137" x2="122" y2="147"></line>
+      <line x1="134" y1="112" x2="139" y2="122"></line>
+      <line x1="147" y1="84" x2="152" y2="94"></line>
+      <line x1="158" y1="56" x2="163" y2="66"></line>
+      <line x1="172" y1="32" x2="177" y2="42"></line>
+    </svg>
+
+    <!-- Motif 2: Tailor Shears (Lower Left) -->
+    <svg class="motif motif-shears" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Handles -->
+      <ellipse cx="45" cy="155" rx="18" ry="24" transform="rotate(-30 45 155)"></ellipse>
+      <ellipse cx="75" cy="165" rx="14" ry="18" transform="rotate(-15 75 165)"></ellipse>
+      <!-- Pivot Shank -->
+      <path d="M54 135 L 90 95 L 98 102 L 68 148"></path>
+      <path d="M80 148 L 94 98 L 102 105 L 85 152"></path>
+      <circle cx="96" cy="100" r="3.5"></circle>
+      <!-- Blades -->
+      <path d="M96 97 L 175 25 C 160 50, 130 80, 96 102 Z"></path>
+      <path d="M96 103 L 180 40 C 150 70, 120 90, 93 100 Z"></path>
+    </svg>
+
+    <!-- Motif 3: Wooden Thread Spool (Lower Right) -->
+    <svg class="motif motif-spool" viewBox="0 0 160 160" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Top Rim -->
+      <ellipse cx="80" cy="30" rx="35" ry="12"></ellipse>
+      <path d="M45 30 L 55 45 L 105 45 L 115 30"></path>
+      <!-- Thread Body with Windings -->
+      <rect x="55" y="45" width="50" height="70" rx="4"></rect>
+      <line x1="55" y1="56" x2="105" y2="56"></line>
+      <line x1="55" y1="67" x2="105" y2="67"></line>
+      <line x1="55" y1="78" x2="105" y2="78"></line>
+      <line x1="55" y1="89" x2="105" y2="89"></line>
+      <line x1="55" y1="100" x2="105" y2="100"></line>
+      <line x1="55" y1="111" x2="105" y2="111"></line>
+      <!-- Bottom Rim -->
+      <path d="M55 115 L 45 130 L 115 130 L 105 115"></path>
+      <ellipse cx="80" cy="130" rx="35" ry="12"></ellipse>
+      <!-- Trailing Loose Thread -->
+      <path d="M105 105 C 130 115, 140 140, 125 155 C 115 165, 95 150, 110 140"></path>
+    </svg>
+
+    <!-- Motif 4: Slender Sewing Needle & Looping Thread (Middle/Upper Left) -->
+    <svg class="motif motif-needle" viewBox="0 0 180 180" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Needle -->
+      <path d="M30 150 L 145 35"></path>
+      <path d="M28 152 L 32 148 L 147 33 C 150 30, 153 32, 151 35 L 143 43 Z"></path>
+      <ellipse cx="143" cy="37" rx="4" ry="1.5" transform="rotate(-45 143 37)"></ellipse>
+      <!-- Thread looping through eye -->
+      <path d="M143 37 C 160 20, 175 45, 150 70 C 125 95, 100 65, 80 90 C 60 115, 75 140, 50 160"></path>
+    </svg>
+  </div>
+
   <div class="app-container">
     <!-- Atelier Header & Brand Area -->
     <header class="app-header">
@@ -33,7 +97,6 @@
         </div>
         <div class="header-meta">
           <p class="app-tagline">Keep every client order, deadline, and progress update in one place.</p>
-          <span class="storage-notice">Orders are saved in this browser on this device.</span>
         </div>
       </div>
     </header>

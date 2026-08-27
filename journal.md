@@ -297,3 +297,32 @@ An honest, stage-by-stage record of the design, architectural decisions, challen
 ### Testing & Verification Status
 - **Automated / Headless Verification**: Re-executed the 24-scenario test harness with 100% pass rate, validating that `hidden` toggles properly and focus routing operates as intended.
 - **Live Browser Testing Note**: Live automated visual rendering via Playwright remained unavailable due to environment driver download constraints (404 on Playwright Azure CDN). The CSS specificity fix and DOM structures were validated via code inspection and headless DOM evaluation. Live assistive screen reader and multi-browser rendering remain manual verification tasks for the user.
+
+---
+
+## Stage 12: Subtle Background Tailoring Watermark Motifs
+
+### What Was Completed
+- **Crafted Non-Intrusive Watermark Layer**:
+  - Implemented a dedicated background layer (`.atelier-motifs`) with `position: fixed`, `inset: 0`, `overflow: hidden`, `pointer-events: none`, and `z-index: 0` placed behind the interactive application shell (`.app-container` with `z-index: 1`).
+  - Added 4 custom inline SVG outline motifs representing iconic tailoring tools:
+    1. Curved Measuring Tape (`.motif-tape`, upper right background, 18deg rotation).
+    2. Tailor Shears (`.motif-shears`, lower left background, -25deg rotation, terracotta tint).
+    3. Wooden Thread Spool (`.motif-spool`, lower right corner, 14deg rotation, brass tint).
+    4. Sewing Needle & Looping Thread (`.motif-needle`, mid-left page margin, -35deg rotation).
+- **Subtle Styling & Accessibility Guarantees**:
+  - Set ultra-low opacity thresholds between `0.028` and `0.038` to keep motifs faint, atmospheric, and noticeable only upon inspection of the open background.
+  - Kept motifs strictly outline-based (`stroke-width: 1.25`, no solid fills, no shadows, no animations).
+  - Ensured zero accessibility interference: marked with `aria-hidden="true"`, non-interactive (`pointer-events: none`), and fully excluded from keyboard and screen reader accessibility trees.
+- **Responsive Motif Scaling & Culling**:
+  - **Desktop (>= 960px)**: All 4 motifs active in wide peripheral margins, partially cropped by viewport edges.
+  - **Tablet (640px - 959px)**: Reduced to 3 motifs, scaled down to prevent crowding the central workspace.
+  - **Mobile (< 640px)**: Reduced to 2 very faint, small corner-cropped motifs (tape top-right, spool bottom-right at 0.028 opacity); hidden shears and needle completely so no motif touches mobile form inputs or order cards.
+
+### Decisions Made
+- **Edge Cropping over Central Placement**: Placed motifs along the outer viewport edges to ensure they inhabit dead space and never sit directly behind readable text or interactive touch targets.
+- **Ultra-Faint Watermark Values**: Restricted opacity to 0.028–0.038 so the background remains calm, professional, and atelier-focused rather than playful or decorative.
+
+### Testing & Verification Status
+- **Regression Suite**: Ran the 24-scenario test harness with 100% pass rate.
+- **Diff & Whitespace Inspection**: Verified clean `git diff --check` with zero whitespace errors.
