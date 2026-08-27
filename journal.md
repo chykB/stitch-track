@@ -1,328 +1,194 @@
-# Development Journal: StitchTrack Clothing-Order Tracker
-
-An honest, stage-by-stage record of the design, architectural decisions, challenges, and solutions during development.
-
----
-
-## Stage 1: Project Structure and Semantic HTML
-
-### What Was Completed
-- Created the project directory structure with discrete files (`index.html`, `styles.css`, `script.js`, `README.md`, and `journal.md`).
-- Authored the complete semantic HTML5 document:
-  - Accessible page header with a bespoke pure-SVG tailoring brand mark (no external icon dependencies).
-  - Two-panel responsive container (`.form-section` and `.orders-section`).
-  - Comprehensive `<form>` with visible `<label>` tags linked to form inputs via `for` and `id` attributes.
-  - Dedicated field error containers (`div.field-error`) equipped with `role="alert"` and `aria-live="polite"` linked to each control via `aria-describedby`.
-  - Accessible dialog-pattern confirmation overlay for destructive order deletion actions with ARIA modal attributes.
-  - Global screen reader live region (`#live-announcer`) for real-time operation announcements.
-  - Empty state container explaining how to record the tailor's first order.
-
-### Decisions Made
-- **Zero External Dependencies**: Decided to use pure SVG vectors and native HTML5 elements rather than CDN font libraries or icons to guarantee offline availability and privacy.
-- **Accessible Validation Architecture**: Paired all inputs with `aria-required="true"` and `aria-describedby` pointing directly to error containers so assistive technologies announce contextual errors immediately.
-- **Modal Confirmation Over `window.confirm`**: Designed an accessible dialog container in HTML so confirmation can be operated with full keyboard trapping, readable typography, and visual consistency across browsers without blocking JavaScript execution.
+# Development Journal: StitchTrack
 
-### Challenges Encountered
-- Ensuring that native HTML validation does not trigger default unstyled browser popups while still keeping semantics accessible.
+This journal records the main work, decisions, challenges, and lessons from building the StitchTrack clothing-order tracker.
 
-### How the Challenges Were Handled
-- Added the `novalidate` attribute to `<form>` so our custom, accessible, inline validation system can control user feedback precisely without jarring native browser alert bubbles.
-
-### What Should Happen Next
-- **Stage 2**: Build out the comprehensive responsive visual design and design system in `styles.css`.
-
----
-
-## Stage 2: Responsive Visual Design
-
-### What Was Completed
-- Built the complete CSS design system using CSS Custom Properties (Tokens) for consistent palette, typography, radii, elevation shadows, and transitions.
-- Designed an artisan-tailor theme:
-  - Background: Warm natural workshop tone (`#f7f5f0`).
-  - Text: High-contrast rich charcoal (`#1c1a17`) with secondary warm slate (`#5a544b`).
-  - Accent: Single restrained warm terracotta / tailor bronze (`#a84b16`) for primary focus, highlights, and primary actions.
-  - Status badges: Distinct color pairings (Pending: Amber, In Progress: Indigo/Blue, Ready: Emerald/Green, Delivered: Charcoal/Gray), each with a visible shape indicator and clear text representation.
-- Implemented mobile-first responsive architecture:
-  - Mobile layout: Fluid single-column with ample touch targets (minimum 44px for buttons and inputs).
-  - Tablet/Desktop layout: 2-column workspace with a sticky order creation form panel and responsive auto-fill grid of cards.
-- Implemented `:focus-visible` ring styling and high contrast borders to ensure clear keyboard navigation.
-- Included `prefers-reduced-motion` media query to respect users' vestibular motion preferences.
+## Entry 1: Planning and Project Scope
 
-### Decisions Made
-- **Avoided Frameworks and External CDNs**: Used native CSS Grid, Flexbox, and custom properties for fast performance and zero network dependencies.
-- **Accessible Touch Target Sizes**: Standardized all clickable controls (buttons, inputs, selects) to 44px+ touch targets on mobile viewports.
-- **Visual Status Redundancy**: Paired status badge background colors with solid border outlines, a small status dot indicator, and unambiguous textual labels to prevent reliance on color alone.
+### What I worked on
 
-### Challenges Encountered
-- Ensuring desktop stickiness of the form panel without causing scrolling overflow issues on short laptop screens.
-
-### How the Challenges Were Handled
-- Used `position: sticky; top: var(--space-6); align-items: start;` on the CSS Grid layout, ensuring the form panel remains anchored while the orders feed scrolls naturally.
-
-### What Should Happen Next
-- **Stage 3**: Implement order creation and field-level validation logic in `script.js`.
-
----
-
-## Stage 3: Order Creation and Validation
-
-### What Was Completed
-- Implemented non-blocking field validation logic in `script.js`:
-  - **Client Name**: Must not be empty or whitespace only.
-  - **Clothing Item**: Must not be empty or whitespace only.
-  - **Agreed Price**: Must be a valid positive numerical amount strictly greater than 0.
-  - **Delivery Date**: Must be selected and valid.
-- Built accessible error display mechanisms:
-  - Toggled `aria-invalid="true|false"` dynamically on the input elements.
-  - Rendered inline error messages directly into `#<field>-error` nodes without using browser alerts.
-  - Added real-time `input` event listeners on all form controls to clear error states as soon as the user corrects their input.
-- Added programmatic focus management to send focus to the first invalid field upon form submission failure.
-- Implemented utility functions for unique ID generation (`ord_<timestamp>_<random>`) and Nigerian Naira currency formatting (`Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' })`).
-
-### Decisions Made
-- **Real-Time Error Clearing**: Rather than waiting for another submit click, clearing error states on typing provides immediate feedback and reduces tailor frustration when entering rapid orders.
-- **Strict Number and Whitespace Sanitization**: Added `.trim()` checks and `parseFloat() > 0` validation to prevent whitespace-only client entries or negative price anomalies.
+I defined the project as a simple clothing-order tracker for independent tailors, dressmakers, and small fashion studios.
 
-### Challenges Encountered
-- Ensuring that screen readers announce the exact reason a form failed validation when navigating directly to the first invalid input.
-
-### How the Challenges Were Handled
-- Connected each input to its dedicated error container with `aria-describedby` and marked the error container with `role="alert"` so assistive technology reads the error text as soon as the field is focused.
-
-### What Should Happen Next
-- **Stage 4**: Implement order rendering, delivery-date ascending sorting, empty state management, and `localStorage` persistence with error recovery.
-
----
-
-## Stage 4: Order Persistence with localStorage
-
-### What Was Completed
-- Created defensive `localStorage` loading and saving layer under key `stitchtrack_orders_v1`.
-- Built data sanity validation inside `loadOrdersFromStorage()` to handle missing, empty, or corrupt data without throwing runtime exceptions.
-- Implemented ascending delivery date sorting (`sortOrders()`) ensuring orders due earliest are shown at the top of the feed, with creation timestamps as tiebreakers.
-- Implemented safe DOM rendering in `createOrderCardElement()` and `renderOrders()` using `document.createElement`, `textContent`, and `setAttribute`, strictly avoiding `innerHTML` interpolation of user-supplied text.
-- Integrated Nigerian Naira currency formatting via `Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' })`.
-- Handled dynamic empty state toggling when no active orders exist.
-
-### Decisions Made
-- **Zero innerHTML Interpolation**: Ensured user input fields (`clientName`, `clothingItem`, `price`, `date`) are safely bound via `textContent` to prevent script injection.
-- **Defensive Storage Schema Verification**: When loading from storage, each record is validated against field types and expected status values to prevent app crashes if localStorage was tampered with or corrupted.
-
-### Challenges Encountered
-- Preserving local date values without timezone conversion shifts (e.g., date input string `"2026-09-15"` turning into previous day in certain timezones if parsed via standard `new Date(string)`).
+The first version needed to allow a user to record a client’s name, clothing item, agreed price, delivery date, and order status. It also needed to display saved orders, update their status, delete them, and preserve them after a browser refresh.
 
-### How the Challenges Were Handled
-- Deconstructed the date string into explicit year, month, and day components before parsing, ensuring identical presentation across timezones.
-
-### What Should Happen Next
-- **Stage 5**: Verify and refine status updates and deletion workflows with accessible confirmation modals.
-
----
-
-## Stage 5: Status Updates and Order Deletion
-
-### What Was Completed
-- Added immediate status updating capabilities directly from individual order cards:
-  - Interactive `<select>` elements dynamically linked to order state.
-  - Status updates update the UI badge immediately, synchronize localStorage, and emit an `aria-live` announcement.
-- Implemented accessible confirmation workflow for order deletions:
-  - Custom confirmation modal (`role="alertdialog"`, `aria-modal="true"`).
-  - Dynamically populates the client's name in the warning description.
-  - Keyboard trapping (Tab / Shift+Tab cycling) between Cancel and Delete buttons.
-  - Dismissal support via Escape key or clicking outside the modal.
-  - Focus retention: When deletion is cancelled, focus is restored to the specific "Delete Order" trigger button that opened it.
-
-### Decisions Made
-- **Non-blocking Custom Modal vs. Native Alert**: Native browser `confirm()` freezes the JavaScript thread and is visually inconsistent. A semantic custom dialog provides a superior UX, preserves accessibility landmarks, and allows custom keyboard management.
-- **Immediate State Synchronization**: Updating status immediately rewrites the state and `localStorage` record without requiring an extra "Save" button per card.
-
-### Challenges Encountered
-- Avoiding focus loss when closing the confirmation modal or removing a deleted card from the DOM.
-
-### How the Challenges Were Handled
-- Saved `state.lastFocusedElementBeforeDialog` upon opening the modal and restored focus to that element on cancellation.
-
-### What Should Happen Next
-- **Stage 6**: Conduct accessibility review, verify color contrast calculations, and test edge cases.
-
----
-
-## Stage 6: Improved Accessibility and Error Handling
-
-### What Was Completed
-- **Screen Reader Announcements**: Configured live ARIA announcements via `#live-announcer` for order creation, status changes, deletions, and storage warnings.
-- **Accessible Validation Linking**: Connected form controls directly to contextual error text nodes via `aria-describedby` and synchronized `aria-invalid` boolean states.
-- **Focus Management**:
-  - Automatically moves focus to the first invalid field upon rejected form submission.
-  - Automatically traps focus inside the deletion dialog modal.
-  - Returns focus to the trigger button if deletion is cancelled.
-- **Defensive Error Handling**:
-  - Sanitized `localStorage` deserialization with fallback to an empty array upon JSON parsing syntax errors or malformed array structures.
-  - Filtered incoming storage records against strict type predicates (string IDs, positive numeric prices, valid ISO dates, allowed status enums).
-  - Rendered user values via `textContent` to reduce HTML injection risks.
-- **Contrast & Motion Support**:
-  - Calculated color pair luminance against WCAG 2.1 AA target thresholds (4.5:1 for normal text).
-  - Included `prefers-reduced-motion` CSS overrides to suppress transitions for users sensitive to motion.
-
-### Decisions Made
-- **Textual + Visual Status Indicators**: Implemented text labels alongside color badges and dot glyphs to ensure status information is accessible without relying on color alone.
-- **Keyboard Tab-Loop Trapping**: Used native keydown listener to cycle focus between Cancel and Delete in the dialog, preventing background tab leaks.
-
-### Challenges Encountered
-- Screen readers occasionally suppressing rapid successive announcements if identical text was sent to `aria-live` containers.
-
-### How the Challenges Were Handled
-- Cleared `DOM.liveAnnouncer.textContent` before injecting new announcement text with a 50ms setTimeout deferral to allow screen readers to register content updates.
-
-### What Should Happen Next
-- **Stage 7**: Perform automated test checks.
-
----
-
-## Stage 7: Initial Automated Code & Token Checks
-
-### What Was Completed
-- Created an automated verification script (`test_runner.js` in the scratch directory) that ran 30 programmatic assertion checks covering:
-  - File existence and project structure adherence.
-  - HTML markup presence for input fields, labels, live regions, and dialog.
-  - CSS custom properties, responsive rule definitions, and reduced-motion queries.
-  - Currency formatting output for Nigerian Naira.
-  - Sorting comparator logic (date ascending with creation time tiebreaker).
-  - Storage error recovery handling (corrupt JSON, non-array payloads).
-  - Safe DOM method presence (`textContent`, `createElement`).
-- Executed the 30 structural/unit assertions successfully.
-
-### Distinction from Later Functional Testing
-- This initial 30-check suite tested individual static code units, string patterns, and isolated utility functions in Node.js. It did not simulate sequential end-to-end user workflows (e.g. form submission flows, multi-order deletion sequences, or modal focus shifts), which were tested in Stage 9.
-
-### Challenges Encountered
-- Browser-based automated testing using Playwright could not be initialized due to a remote driver download 404 network failure in the sandboxed environment.
-
-### How the Challenges Were Handled
-- Replaced direct browser automation with Node.js script assertions testing DOM manipulation methods and state transformations.
-
-### What Should Happen Next
-- **Stage 8**: Complete project documentation and development journal.
-
----
-
-## Stage 8: Project Documentation and Review
-
-### What Was Completed
-- Authored `README.md` covering:
-  - Project summary, target audience, and problem solved for independent tailors.
-  - Core features and technologies used.
-  - Local execution instructions via Python HTTP server.
-  - Architectural, design, and accessibility decisions.
-  - Resolved challenges and current limitations.
-- Finalized this development journal (`journal.md`).
-
-### Decisions Made
-- **Honest Documentation**: Documented actual storage characteristics (browser-bound `localStorage`) and provided setup instructions.
-
-### What Should Happen Next
-- Perform comprehensive self-audit and quality verification.
-
----
-
-## Stage 9: Comprehensive Self-Audit & Functional Verification
-
-### What Was Completed
-- Executed a 24-scenario functional test harness (`audit_suite.js` in the scratch directory) using a Node.js DOM-simulation environment.
-- Verified all 24 explicit functional scenarios:
-  - Empty state and zero count initialization.
-  - Form validation on empty inputs, whitespace-only names/items, zero price, negative price, and missing date.
-  - Order creation, immediate rendering, empty state hiding, and singular counter ("1 Order").
-  - Multi-order ascending delivery date sorting with tiebreaker handling.
-  - Status updates and persistence across simulated reload.
-  - Deletion modal opening, cancellation preserving order, confirmation deleting order, and complete deletion restoring empty state.
-  - Safe rendering of HTML strings (e.g. `<strong>Test</strong>`) as literal text.
-  - Corrupted localStorage graceful recovery.
-  - Singular and plural count progression ("0 Orders", "1 Order", "2 Orders").
-- Updated header copy in `index.html` to accurately state: `"Your orders are saved in this browser on this device."`
-
-### Verification Boundaries & Clarifications
-- **Harness Scope**: Tests were executed using a temporary Node.js DOM-simulation script (`audit_suite.js`). Tests were **not** executed in a live Chromium, Firefox, Safari, or WebKit browser.
-- **Responsive Design**: Responsive CSS rules and media queries (640px, 900px, 1100px) were inspected via code review; live interactive verification across every individual physical viewport size was not performed.
-- **Accessibility**: Programmatic attributes (`aria-describedby`, `aria-invalid`, `aria-live`, `role="alertdialog"`, focus traps, focus restoration, label associations, `:focus-visible`) and mathematical color contrast ratios were verified through code inspection and programmatic assertions. Full assistive-technology audits with live screen readers (NVDA, JAWS, VoiceOver) and a complete formal WCAG 2.1 AA audit were not performed.
-
----
-
-## Stage 10: Final Evidence-Alignment Pass & Focus Improvements
-
-### What Was Completed
-- **Improved Deletion Focus Management**:
-  - Updated `confirmDeleteOrder()` in `script.js`:
-    - When other orders remain after a deletion, focus is moved to the `#orders-heading` ("Saved Orders") landmark.
-    - When the final remaining order is deleted, focus is moved to the `#empty-state` container.
-  - Added `tabindex="-1"` to both `#orders-heading` and `#empty-state` in `index.html` so they can receive programmatic focus without entering the default tab order.
-  - Added `[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }` and `[tabindex="-1"]:focus-visible` rules in `styles.css`.
-- **Refined Documentation Language in `README.md`**:
-  - Replaced "offline-first" with "dependency-free, browser-based."
-  - Replaced "Safe DOM Injection" with "Safe DOM Rendering."
-  - Clarified XSS wording: "User-provided order values are rendered through textContent, reducing the risk of HTML injection through those fields."
-  - Replaced "Non-Modal Confirmation Dialog" with "Custom Modal Confirmation Dialog."
-  - Clarified accessibility scope: "The interface includes accessibility considerations such as semantic labels, inline error associations, keyboard handlers, visible focus styles, status text, reduced-motion support, and contrast ratios designed to meet WCAG 2.1 AA thresholds. A complete assistive-technology audit has not been performed."
-  - Updated local run instructions to recommend `python -m http.server 3000` with direct file opening noted as an alternative.
-- **Code Quality & Formatting**:
-  - Removed trailing blank lines to ensure clean `git diff --check` output.
-- **Retesting**:
-  - Re-executed the functional test suite against the updated codebase. All tests passed cleanly.
-
-### What Should Happen Next
-- Review git status and await user authorization before pushing to GitHub.
-
----
-
-## Stage 11: Atelier Visual Redesign & Critical Empty-State Bug Fix
-
-### What Was Completed
-- **Critical Empty-State Display Bug Resolved**:
-  - *Identified Defect*: In populated states, the empty state ("No orders recorded yet") remained visible alongside active order cards.
-  - *Root Cause*: `.empty-state { display: flex; }` had higher specificity than the browser's default user-agent `[hidden]` rule, overriding `display: none` when the `hidden` attribute was set by JavaScript.
-  - *Correction*: Added a global CSS rule `[hidden] { display: none !important; }` at the top of `styles.css`. Now, any element with the `hidden` attribute is strictly removed from layout.
-- **Atelier Visual Redesign Implemented**:
-  - Replaced generic SaaS dashboard aesthetics with a warm, crafted atelier visual language tailored for independent fashion designers.
-  - Applied the refined palette: Warm ivory canvas (`#F7F1E7`), paper surfaces (`#FFFCF7`), deep espresso text (`#2A211B`), terracotta accents (`#A94F2B`), and soft thread borders (`#D8C5AD`).
-  - Integrated system font pairings: Classic `Georgia` serif for brand titles and section headers ("Create an Order", "Order Board"), paired with a crisp sans-serif for inputs, badges, and controls.
-  - Redesigned order cards to resemble atelier work tickets with stitched terracotta left borders, dashed dividers, and clear hierarchy.
-  - Replaced the generic shopping bag empty state with a bespoke tailor spool & thread vector motif.
-- **Documentation & Evidence Alignment**:
-  - Updated `README.md` and `journal.md` reflecting the new visual system, bug resolution, and honest testing status.
-
-### Decisions Made
-- **System Typography over CDN Fonts**: Leveraged system `Georgia` for artisanal character without introducing network latency or external font dependencies.
-- **CSS-Only Linen Texture**: Added a subtle radial dot weave pattern in CSS to evoke a natural fabric texture.
-
-### Testing & Verification Status
-- **Automated / Headless Verification**: Re-executed the 24-scenario test harness with 100% pass rate, validating that `hidden` toggles properly and focus routing operates as intended.
-- **Live Browser Testing Note**: Live automated visual rendering via Playwright remained unavailable due to environment driver download constraints (404 on Playwright Azure CDN). The CSS specificity fix and DOM structures were validated via code inspection and headless DOM evaluation. Live assistive screen reader and multi-browser rendering remain manual verification tasks for the user.
-
----
-
-## Stage 12: Subtle Background Tailoring Watermark Motifs
-
-### What Was Completed
-- **Crafted Non-Intrusive Watermark Layer**:
-  - Implemented a dedicated background layer (`.atelier-motifs`) with `position: fixed`, `inset: 0`, `overflow: hidden`, `pointer-events: none`, and `z-index: 0` placed behind the interactive application shell (`.app-container` with `z-index: 1`).
-  - Added 4 custom inline SVG outline motifs representing iconic tailoring tools:
-    1. Curved Measuring Tape (`.motif-tape`, upper right background, 18deg rotation).
-    2. Tailor Shears (`.motif-shears`, lower left background, -25deg rotation, terracotta tint).
-    3. Wooden Thread Spool (`.motif-spool`, lower right corner, 14deg rotation, brass tint).
-    4. Sewing Needle & Looping Thread (`.motif-needle`, mid-left page margin, -35deg rotation).
-- **Subtle Styling & Accessibility Guarantees**:
-  - Set ultra-low opacity thresholds between `0.028` and `0.038` to keep motifs faint, atmospheric, and noticeable only upon inspection of the open background.
-  - Kept motifs strictly outline-based (`stroke-width: 1.25`, no solid fills, no shadows, no animations).
-  - Ensured zero accessibility interference: marked with `aria-hidden="true"`, non-interactive (`pointer-events: none`), and fully excluded from keyboard and screen reader accessibility trees.
-- **Responsive Motif Scaling & Culling**:
-  - **Desktop (>= 960px)**: All 4 motifs active in wide peripheral margins, partially cropped by viewport edges.
-  - **Tablet (640px - 959px)**: Reduced to 3 motifs, scaled down to prevent crowding the central workspace.
-  - **Mobile (< 640px)**: Reduced to 2 very faint, small corner-cropped motifs (tape top-right, spool bottom-right at 0.028 opacity); hidden shears and needle completely so no motif touches mobile form inputs or order cards.
-
-### Decisions Made
-- **Edge Cropping over Central Placement**: Placed motifs along the outer viewport edges to ensure they inhabit dead space and never sit directly behind readable text or interactive touch targets.
-- **Ultra-Faint Watermark Values**: Restricted opacity to 0.028–0.038 so the background remains calm, professional, and atelier-focused rather than playful or decorative.
-
-### Testing & Verification Status
-- **Regression Suite**: Ran the 24-scenario test harness with 100% pass rate.
-- **Diff & Whitespace Inspection**: Verified clean `git diff --check` with zero whitespace errors.
+### Decisions made
+
+I decided to use semantic HTML, CSS, and vanilla JavaScript. I excluded authentication, databases, online payments, external APIs, inventory, measurements, and staff management.
+
+The purpose of this project was to build and document a small working application, not to recreate my complete commercial product idea.
+
+### Challenge and response
+
+The main planning challenge was preventing the project from becoming too large. Several additional features sounded useful, but they were not required to demonstrate the core order-tracking workflow.
+
+I kept a written list of excluded features and treated them as possible future improvements.
+
+### Next step
+
+Create the project structure and build the order form.
+
+## Entry 2: Interface and Form
+
+### What I worked on
+
+I created the initial project files:
+
+- `index.html`
+- `styles.css`
+- `script.js`
+- `README.md`
+- `journal.md`
+
+I built a form containing the client name, clothing item, agreed price, delivery date, and initial status.
+
+I connected visible labels to the form controls and added dedicated containers for validation messages.
+
+### Decisions made
+
+I used a mobile-first layout so the application would remain practical on smaller screens.
+
+I also chose system fonts and inline SVG icons instead of external fonts or icon libraries. This kept the project dependency-free.
+
+### Challenge and response
+
+I needed validation messages that were clear without relying on browser alerts.
+
+I used inline error messages associated with their fields through `aria-describedby`. Invalid fields receive `aria-invalid="true"`, and focus moves to the first field that requires correction.
+
+### Next step
+
+Implement order creation, display, validation, and browser storage.
+
+## Entry 3: Core Application Functionality
+
+### What I worked on
+
+I added the JavaScript required to create and display orders.
+
+Each order receives a unique ID and is displayed with the client name, clothing item, agreed price, delivery date, and current status.
+
+Orders are sorted by the closest delivery date. Prices are formatted in Nigerian naira using `Intl.NumberFormat`.
+
+I also added status updates and order deletion with a confirmation dialog.
+
+### Decisions made
+
+I used `localStorage` because the assignment required a simple browser-based application without a backend.
+
+User-provided values are displayed with `textContent` and DOM creation methods instead of being inserted through `innerHTML`.
+
+I used a custom confirmation dialog for deletion so the interface could provide consistent styling and managed keyboard focus.
+
+### Challenge and response
+
+JavaScript date parsing could display a delivery date one day earlier in some timezones.
+
+To avoid this, I separated the stored date into year, month, and day values before formatting it for display.
+
+I also added error handling so invalid or corrupted localStorage data would not prevent the application from loading.
+
+### Next step
+
+Review accessibility, keyboard interaction, empty states, and error handling.
+
+## Entry 4: Accessibility and Functional Review
+
+### What I worked on
+
+I reviewed the application’s labels, focus styles, validation messages, status indicators, dialog behaviour, and live announcements.
+
+I added keyboard support for opening and closing the deletion dialog, trapping focus inside it, and restoring focus after it closes.
+
+Status is always communicated through text, not colour alone. I also included visible focus styles and reduced-motion support.
+
+Temporary Node.js scripts were used to check the project structure, validation logic, sorting, localStorage recovery, status changes, deletion, and safe rendering of user-entered text.
+
+### Decisions made
+
+I documented the boundaries of the testing honestly.
+
+The automated checks used a simulated DOM environment. They were not complete live-browser, screen-reader, or cross-browser tests. The interface was visually reviewed in Chrome, but complete assistive-technology testing remains outside this project’s current scope.
+
+### Challenge and response
+
+Live automated browser testing could not be completed because the browser-testing tool failed to download its required driver.
+
+Instead of describing code inspection as full browser verification, I recorded which checks were automated, which were visually reviewed, and which remain untested.
+
+### Next step
+
+Test the populated interface and review whether the visual design reflects the intended users.
+
+## Entry 5: Empty-State Bug and Visual Redesign
+
+### What I worked on
+
+After adding sample orders, I discovered that the page displayed the order cards and the “No orders recorded yet” message at the same time.
+
+The JavaScript correctly added the `hidden` attribute to the empty state. However, the `.empty-state { display: flex; }` CSS rule overrode the browser’s default hidden styling.
+
+I corrected this by adding:
+
+`[hidden] { display: none !important; }`
+
+I then reviewed the visual design. The first interface was functional but looked like a general administration dashboard rather than a tailoring workspace.
+
+I redesigned it with an atelier-inspired style using warm ivory surfaces, dark text, terracotta and muted brass accents, serif headings, stitched divider lines, and work-ticket order cards.
+
+### Decisions made
+
+I kept the tailoring theme restrained so that decoration would not compete with order information.
+
+I later added a few faint outline illustrations of tailoring tools to the page background. These decorative SVGs are non-interactive, hidden from assistive technology, and reduced on smaller screens.
+
+### Challenge and response
+
+The biggest lesson from the empty-state bug was that correct JavaScript state does not guarantee correct visual output. The DOM simulation confirmed that the `hidden` attribute existed, but it did not reveal that CSS was overriding the rendered result.
+
+A real screenshot of the populated interface exposed the problem.
+
+### Next step
+
+Review the final copy, documentation, repository status, and submission requirements.
+
+## Entry 6: Documentation and Final Preparation
+
+### What I worked on
+
+I updated the README to explain:
+
+- What StitchTrack is
+- Who it is designed for
+- The problem it addresses
+- Its core features
+- Technologies and tools used
+- How to run it locally
+- Important product and design decisions
+- Challenges and solutions
+- Current limitations
+- Possible future improvements
+
+I also corrected wording that overstated the safety of browser storage. The interface now explains that orders are saved in the current browser on the current device.
+
+### Decisions made
+
+I documented localStorage as a limitation rather than presenting it as secure backup or cloud storage.
+
+I also kept the public documentation focused on what the application currently does. Features such as measurements, deposits, client approvals, cloud synchronization, and data export remain possible future improvements.
+
+### Final reflection
+
+This project showed me that building a functional interface is only one part of product engineering.
+
+I also had to control the scope, consider the user’s workflow, test assumptions, identify misleading wording, review accessibility, respond to a real rendering bug, and document the reasons behind my decisions.
+
+The final application remains intentionally small, but its code, design, Git history, README, and journal show how it progressed from a basic prompt into a working prototype.
+
+### Submission status
+
+Before submitting, I will confirm that:
+
+- The repository is public.
+- The latest changes are committed and pushed.
+- `README.md` and `journal.md` are present.
+- The repository link opens correctly.
+- The direct GitHub repository link is entered in the designated submission field.

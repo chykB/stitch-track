@@ -1,126 +1,286 @@
-# StitchTrack — Tailor Clothing-Order Tracker
+# StitchTrack: Tailor Clothing-Order Tracker
 
-A lightweight, responsive, accessible, and dependency-free, browser-based clothing order management web application designed specifically for independent tailors, seamstresses, and bespoke fashion studios. Built with 100% vanilla HTML5, CSS3, and modern JavaScript without external dependencies.
+A lightweight, responsive, accessible, dependency-free browser application for managing clothing orders. StitchTrack is designed for independent tailors, dressmakers, and small bespoke fashion studios.
 
----
+It is built with semantic HTML, CSS, and vanilla JavaScript without external runtime dependencies.
 
-## 1. What the Project Is
-**StitchTrack** is a crafted order-tracking workspace that allows independent tailors to record, monitor, update, and manage active client clothing orders on any device. It operates entirely on client-side storage, ensuring instant loading and complete privacy.
+## 1. Project Overview
 
----
+StitchTrack is an order-tracking workspace that allows independent tailors to record, monitor, update, and manage active client clothing orders in a modern web browser.
 
-## 2. Who It Is Designed For
-Independent tailors, seamstresses, bespoke fashion creators, and small apparel atelier owners who need an uncluttered, reliable digital workspace to manage their client orders without dealing with complicated software, subscription fees, or internet dependencies.
+Each order contains the client’s name, clothing item, agreed price, delivery date, and production status.
 
----
+Order data is stored locally in the user’s browser and is not sent to an external application server.
 
-## 3. The Problem It Solves
-Tailors frequently juggle order information across paper notebooks, loose WhatsApp messages, physical measurement slips, and memory. This leads to:
+## 2. Target Users
+
+StitchTrack is designed for:
+
+- Independent tailors
+- Dressmakers and seamstresses
+- Bespoke fashion creators
+- Home-based clothing designers
+- Small fashion studios
+
+It is intended for people who need a simple digital workspace for managing client orders without learning complicated business software.
+
+## 3. Problem It Solves
+
+Tailors often manage order information across paper notebooks, WhatsApp messages, physical slips, and memory.
+
+This can lead to:
+
 - Missed delivery deadlines
-- Confusion over agreed pricing and deposit balances
-- Difficulty tracking production stages (Pending, In Progress, Ready, Delivered)
+- Confusion over agreed prices and delivery details
+- Difficulty tracking production stages
+- Time spent searching for order information
 - Lost records when physical notebooks are misplaced or damaged
 
-StitchTrack provides a single, structured digital home for all active orders, automatically sorting them by closest delivery date so tailors always know what needs to be sewn next.
+StitchTrack provides one structured place for recording active clothing orders.
 
----
+Orders are automatically sorted by the closest delivery date, helping the tailor see which work should receive attention first.
 
 ## 4. Core Features
-- **Order Creation & Instant Validation**: Enter client name, garment description, agreed price (₦), delivery date, and production status with inline validation feedback.
-- **Automated Delivery Date Sorting**: Orders are automatically ordered by nearest delivery date first to keep upcoming deadlines front and center.
-- **Atelier Work Ticket Layout**: Order cards modeled after physical tailoring job slips displaying client names, garments, formatted Nigerian Naira pricing, formatted dates, and status badges.
-- **One-Click Status Updating**: Update an order’s production lifecycle directly on its card between `Pending`, `In Progress`, `Ready`, and `Delivered`.
-- **Accessible Deletion with Confirmation**: Protects against accidental clicks with an accessible, keyboard-trapped confirmation modal.
-- **Local Persistence (`localStorage`)**: Automatic saving and instant data retrieval upon page reload with defensive corruption recovery.
-- **Tailoring-Specific Empty State**: Clear guidance for new users with a spool & thread motif when no orders are recorded.
-- **Screen Reader Announcements**: Dynamic `aria-live` region keeps assistive technology users informed of all actions (creation, status update, deletion).
 
----
+- **Order Creation and Validation:** Record the client’s name, clothing item, agreed price, delivery date, and initial status with clear inline validation.
+- **Delivery-Date Sorting:** Automatically display orders by the closest delivery date.
+- **Atelier Work-Ticket Layout:** Present each order as a clear tailoring job slip containing the client, clothing item, price, delivery date, and status.
+- **In-Card Status Updates:** Move an order between `Pending`, `In Progress`, `Ready`, and `Delivered`.
+- **Deletion Confirmation:** Request confirmation before permanently deleting an order.
+- **Local Persistence:** Save and restore orders with browser `localStorage`.
+- **Corrupted-Storage Recovery:** Recover gracefully when stored data is missing or invalid.
+- **Tailoring-Specific Empty State:** Guide the user when no orders have been created.
+- **Accessible Feedback:** Use inline errors and an ARIA live region to communicate important actions.
 
 ## 5. Technologies Used
-- **HTML5**: Semantic tags (`<header>`, `<main>`, `<section>`, `<form>`, `<fieldset>`, `<button>`, `<dialog>` pattern, ARIA live regions).
-- **CSS3**: Vanilla CSS with CSS Custom Properties (design tokens), CSS Grid, Flexbox, high-contrast states, dashed stitch accents, and responsive media queries.
-- **JavaScript (ES6+)**: Vanilla JavaScript organizing state management, safe DOM creation (`document.createElement`, `textContent`), `Intl.NumberFormat` for currency, and event-driven architecture.
-- **No external frameworks, libraries, CDNs, or fonts**: 100% dependency-free and lightweight.
 
----
+- **HTML:** Semantic elements such as `<header>`, `<main>`, `<section>`, `<form>`, `<fieldset>`, and `<button>`, together with a custom ARIA alert dialog and live regions.
+- **CSS:** CSS custom properties, Grid, Flexbox, responsive media queries, focus styles, status badges, stitched accents, and tailoring-themed background motifs.
+- **JavaScript:** State management, form validation, safe DOM rendering, event handling, local storage, delivery-date sorting, and Nigerian naira formatting.
+- **Web Storage API:** Browser `localStorage` for saving orders between page refreshes.
+- **Intl.NumberFormat:** Nigerian naira formatting using the `en-NG` locale and `NGN` currency.
 
-## 6. How to Run Locally
+No external frameworks, libraries, CDNs, fonts, databases, or APIs are used.
+
+## 6. Development Tools
+
+- **Antigravity:** Used as the AI-assisted development workspace for planning, implementation, review, and refinement.
+- **Git:** Used to record the project’s development history through descriptive commits.
+- **GitHub:** Used to host and share the public repository.
+- **Local Development Server:** Used to preview the application in a standard browser environment.
+- **Browser Developer Tools:** Used to inspect the interface and review responsive behaviour.
+
+## 7. Project Structure
+
+```text
+stitch-track/
+├── index.html
+├── styles.css
+├── script.js
+├── README.md
+└── journal.md
+```
+
+## 8. Running the Project Locally
 
 ### Prerequisites
-Any modern web browser (Chrome, Firefox, Edge, Safari, Opera).
 
-### Recommended Method (Local HTTP Server)
-Running via a local HTTP server provides standard browser environment behavior:
+You need:
 
-1. Open a terminal in the project directory:
-   ```bash
-   cd "Clothin-order tracker"
-   ```
-2. Start a local Python server:
-   ```bash
-   python -m http.server 3000
-   ```
-3. Open your browser and navigate to:
-   ```
-   http://localhost:3000
-   ```
+- A modern web browser
+- Python, if you want to use the recommended local server command
 
-### Alternative Method (Direct File Opening)
-You can also open `index.html` directly in your browser:
-- **Windows**: Double-click `index.html` or run `start index.html` in PowerShell.
-- **macOS**: `open index.html`
-- **Linux**: `xdg-open index.html`
+The application was developed and visually reviewed in Chrome. Complete cross-browser testing has not been performed.
 
-*Note: While supported, `localStorage` behavior on `file://` URLs can vary across browser security policies. Using a local HTTP server is recommended.*
+### Recommended Method
 
----
+Clone the repository:
 
-## 7. Important Product and Design Decisions
-- **Atelier Visual Language**: The interface is intentionally styled after a modern fashion workshop rather than a generic SaaS dashboard. It uses a warm ivory canvas (`#F7F1E7`), linen paper surfaces (`#FFFCF7`), deep espresso body text (`#2A211B`), and warm terracotta (`#A94F2B`) and muted brass (`#B68A52`) accents.
-- **Typography Pairing**: Uses a refined system serif (`Georgia`) for the brand identity and section titles ("Create an Order", "Order Board"), paired with a crisp system sans-serif for forms, tickets, and interactive actions.
-- **Tailoring Craft Details**: Subtle dashed stitch divider lines, work-ticket styled order cards with a stitched terracotta edge, and inline SVG tailor motifs.
-- **Safe DOM Rendering**: User-provided order values are rendered through `textContent`, reducing the risk of HTML injection through those fields.
-- **Custom Modal Confirmation Dialog**: Created a custom accessible modal dialog instead of disruptive native browser `window.confirm()` or `window.alert()`.
-- **Responsive Workspace**: Mobile-first single column expanding cleanly to a desktop 2-column workspace with a sticky order form on the left and an expansive Order Board grid on the right.
+```bash
+git clone https://github.com/chykB/stitch-track.git
+cd stitch-track
+```
 
----
+Start a local HTTP server:
 
-## 8. Accessibility Considerations
-- **Semantic Structure**: Meaningful heading hierarchy (`h1`, `h2`, `h3`), landmarks (`header`, `main`, `section`, `footer`), and form labels linked with `for`/`id`.
-- **Screen Reader Announcements**: Live region (`#live-announcer`) with `aria-live="polite"` broadcasts status changes, order creation, and deletion notices.
-- **Color Independence**: Status badges communicate state using clear text labels and shape indicators, not color alone.
-- **Standards Alignment**: The interface includes accessibility considerations such as semantic labels, inline error associations, keyboard handlers, visible focus styles, status text, reduced-motion support, and contrast ratios designed to meet WCAG 2.1 AA thresholds. A complete assistive-technology audit has not been performed.
-- **Keyboard Navigation & Trapping**: Full tab order support, visible `:focus-visible` outlines, Escape key modal closure, and focus trapping inside the deletion modal.
-- **Reduced Motion**: Supports `prefers-reduced-motion` media query to respect users sensitive to animations.
+```bash
+python -m http.server 3000
+```
 
----
+Open this address in your browser:
 
-## 9. Challenges Encountered and How They Were Resolved
-1. **Empty-State Display Override Bug**:
-   - *Problem*: The empty state container remained visible alongside populated order cards because `.empty-state { display: flex; }` had higher specificity than the browser default `[hidden]` rule.
-   - *Resolution*: Added a top-level `[hidden] { display: none !important; }` reset in `styles.css`, ensuring the `hidden` attribute strictly removes hidden elements from rendering.
-2. **Timezone Shifts on Date Inputs**:
-   - *Problem*: Passing ISO date strings directly into `new Date("YYYY-MM-DD")` causes date shifts depending on UTC offsets.
-   - *Resolution*: Split the date string into explicit `[year, month, day]` integers to ensure timezone-independent rendering.
-3. **Accessible Form Error Feedback**:
-   - *Problem*: Standard HTML5 validation tooltips differ across browsers and can be inaccessible.
-   - *Resolution*: Used `novalidate` on the form and built inline accessible error containers with `aria-describedby`, `aria-invalid`, and programmatic focus movement to the first invalid field.
-4. **Corrupted Local Storage Resilience**:
-   - *Problem*: Unexpected data types or malformed JSON in `localStorage` could crash the interface on launch.
-   - *Resolution*: Wrapped retrieval in a `try...catch` and validated every record against strict schema type predicates before committing to the application state.
+```text
+http://localhost:3000
+```
 
----
+On Windows, if the `python` command is unavailable, try:
 
-## 10. Current Limitations
-- **Device-Bound Storage**: Orders are stored in the browser’s `localStorage`. Clearing browser site data or switching devices will not carry over saved records.
-- **Single Currency**: Formatted specifically for Nigerian Naira (NGN / ₦) per initial business requirements.
-- **Single User Context**: Designed for individual tailor workspaces rather than multi-user team workflows.
+```bash
+py -m http.server 3000
+```
 
----
+### Alternative Method
 
-## 11. Possible Future Improvements
-- **Data Export & Backup**: Export orders to JSON or CSV for accounting backups.
-- **Printable Invoices / Slips**: Dedicated printable order receipt view formatted for receipt printers.
-- **Measurement Recording**: Expand order forms to include custom tailoring measurements (chest, waist, hip, length, shoulder).
-- **Search & Filter Controls**: Quick search by client name or status filtering tabs (e.g. view only "In Progress" orders).
+You may open `index.html` directly in a browser.
+
+However, `localStorage` behaviour for `file://` addresses can vary between browsers. Running the application through a local HTTP server is recommended.
+
+## 9. Important Product and Design Decisions
+
+### Focused Version-One Scope
+
+The project focuses only on creating, viewing, sorting, updating, saving, and deleting clothing orders.
+
+Authentication, databases, payments, measurements, staff accounts, online synchronization, and external APIs were intentionally excluded.
+
+### Local Browser Storage
+
+`localStorage` was selected because the project is a simple client-side prototype with no backend.
+
+This allows orders to remain after a page refresh, but the data is limited to the browser and device where it was entered.
+
+### Atelier-Inspired Visual Design
+
+The interface is styled after a modern tailoring workspace rather than a generic administration dashboard.
+
+The design uses:
+
+- Warm ivory backgrounds
+- Paper-like surfaces
+- Deep espresso text
+- Terracotta and muted brass accents
+- Serif headings
+- Dashed stitch dividers
+- Work-ticket order cards
+- Subtle tailoring-themed background motifs
+
+### Safe DOM Rendering
+
+User-provided order values are rendered using `textContent` and DOM creation methods instead of inserting them through `innerHTML`.
+
+This reduces the risk of HTML injection through the order fields.
+
+### Custom Confirmation Dialog
+
+A custom confirmation dialog is used instead of `window.confirm()`.
+
+This provides visual consistency and allows keyboard focus to be managed within the interface.
+
+### Mobile-First Layout
+
+The application uses a single-column layout on smaller screens and expands into a two-column workspace on larger screens.
+
+Long client names and clothing descriptions wrap without creating horizontal scrolling.
+
+## 10. Accessibility Considerations
+
+The interface includes:
+
+- Semantic page structure
+- Visible form labels
+- Labels connected to their form controls
+- Inline error messages
+- `aria-describedby` error associations
+- Dynamic `aria-invalid` states
+- An `aria-live` announcement region
+- Visible keyboard-focus styles
+- Keyboard support for the confirmation dialog
+- Escape-key dialog dismissal
+- Text labels for every status
+- Minimum touch-target sizing
+- Reduced-motion support
+- Colour combinations designed to meet WCAG 2.1 AA contrast thresholds
+
+A complete assistive-technology and cross-browser accessibility audit has not been performed.
+
+## 11. Challenges and Solutions
+
+### Empty State Appearing With Saved Orders
+
+**Problem:** The empty-state message remained visible after orders were created because the `.empty-state` CSS display rule overrode the browser’s default handling of the `hidden` attribute.
+
+**Solution:** A global `[hidden] { display: none !important; }` rule was added so hidden interface states are reliably removed from the rendered page.
+
+### Date Shifts Caused by Timezones
+
+**Problem:** Passing a date such as `2026-09-01` directly to the JavaScript `Date` constructor could display a different day in some timezones.
+
+**Solution:** The date string is separated into year, month, and day values before formatting.
+
+### Accessible Form Validation
+
+**Problem:** Native browser validation messages differ between browsers and do not match the application’s design.
+
+**Solution:** The form uses inline error containers connected to the relevant fields with `aria-describedby` and `aria-invalid`. Focus moves to the first invalid field after an unsuccessful submission.
+
+### Corrupted Local Storage
+
+**Problem:** Missing, malformed, or unexpected data in `localStorage` could prevent the application from loading correctly.
+
+**Solution:** Stored data is read inside a `try...catch` block and validated before it is accepted into the application state.
+
+### Accurate Storage Messaging
+
+**Problem:** The original interface said orders were “safely saved,” which could suggest encrypted storage or a remote backup.
+
+**Solution:** The wording was changed to explain that orders are saved in the current browser on the current device.
+
+## 12. Current Limitations
+
+- Orders do not synchronize across browsers or devices.
+- Clearing browser data removes the saved orders.
+- There is no cloud backup or export feature.
+- The application supports one local user context.
+- Prices are formatted only in Nigerian naira.
+- Authentication and access control are not included.
+- Deposits, outstanding balances, measurements, and client approvals are not tracked.
+- The application has not received complete cross-browser or assistive-technology testing.
+- The application should not be used to store highly sensitive personal information.
+
+## 13. Possible Future Improvements
+
+Possible improvements include:
+
+- Exporting and importing orders as JSON or CSV
+- Printable order slips
+- Search and filtering
+- Measurement recording
+- Deposit and balance tracking
+- Optional cloud synchronization
+- Client approval links
+- Data backup and recovery
+- Broader cross-browser testing
+
+These features are outside the scope of the current assignment.
+
+## 14. Development Journal
+
+The project’s planning, implementation decisions, challenges, testing, and refinements are documented in [journal.md](./journal.md).
+
+## 15. Git Commit Approach
+
+The project was developed through focused commits with descriptive messages, including:
+
+- Creating the initial project structure
+- Adding the responsive form and layout
+- Implementing order creation and validation
+- Adding local-storage persistence
+- Adding status updates and deletion
+- Improving accessibility and error handling
+- Adding project documentation
+- Refining the atelier-inspired interface
+
+This commit history shows how the application progressed from its initial structure to the completed prototype.
+
+## 16. Data Notice
+
+StitchTrack stores order information in the browser’s `localStorage`.
+
+The data:
+
+- Is not automatically sent to an external server
+- Is not encrypted by StitchTrack
+- Is limited to the browser and device where it was entered
+- May be removed when browser data is cleared
+
+Do not enter highly sensitive personal or financial information into this prototype.
