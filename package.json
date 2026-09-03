@@ -8,19 +8,31 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prisma:validate": "bash scripts/prisma.sh validate --schema prisma/schema.prisma",
+    "prisma:generate": "bash scripts/prisma.sh generate --schema prisma/schema.prisma",
+    "db:migrate": "bash scripts/prisma.sh migrate dev --schema prisma/schema.prisma",
+    "db:migrate:status": "bash scripts/prisma.sh migrate status --schema prisma/schema.prisma",
+    "db:deploy": "bash scripts/prisma.sh migrate deploy --schema prisma/schema.prisma",
+    "db:verify": "node --env-file=.env.local --import tsx scripts/verify-database.ts",
+    "prisma:install": "npm install --prefix tools/prisma-cli"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "6.19.3",
+    "@prisma/client": "6.19.3",
     "next": "16.3.4",
+    "pg": "8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@types/pg": "8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
+    "tsx": "4.23.13",
     "typescript": "5.9.3"
   },
   "engines": {

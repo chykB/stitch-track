@@ -242,3 +242,160 @@ The following are deliberately deferred:
 - delivery history
 
 Those will be introduced in their appropriate versioned phases.
+
+## Prisma persistence foundation
+
+StitchTrack uses Prisma as its PostgreSQL persistence adapter.
+
+### Versions
+
+The V0.1 engineering foundation uses:
+
+- PostgreSQL server 16
+- Prisma Client 6.19.3
+- Prisma PostgreSQL adapter 6.19.3
+- pg 8.23.0
+- Prisma CLI 6.19.3
+
+The Prisma packages are pinned deliberately rather than automatically
+following major releases.
+
+### Runtime dependency boundary
+
+The root StitchTrack application contains only the Prisma packages required
+to execute application database operations:
+
+- `@prisma/client`
+- `@prisma/adapter-pg`
+- `pg`
+
+The Prisma CLI is not installed in the root application dependency tree.
+
+Migration and client-generation tooling is isolated under:
+
+`tools/prisma-cli`
+
+This prevents Prisma CLI-only dependencies from becoming part of the
+application runtime dependency tree.
+
+The tooling package must not be converted into an npm workspace or imported
+by application source code.
+
+### Generated client
+
+The Prisma Client uses the `prisma-client` generator and is generated into:
+
+`src/generated/prisma`
+
+Generated Prisma code is ignored by Git.
+
+After cloning the repository:
+
+    npm install
+    npm run prisma:install
+    npm run prisma:generate
+
+### Environment variables
+
+Local database credentials are stored in the ignored `.env.local` file.
+
+The persistence tooling expects:
+
+- `DATABASE_URL`
+- `TEST_DATABASE_URL`
+- `SHADOW_DATABASE_URL`
+
+`.env.example` contains placeholders only and must never contain real
+credentials.
+
+### Development databases
+
+The local development environment uses three databases:
+
+- `stitchtrack_dev` — application development database
+- `stitchtrack_test` — integration-test database
+- `stitchtrack_shadow` — Prisma migration shadow database
+
+The test role cannot access the development or shadow databases.
+
+The development role cannot access the test database.
+
+### Migration policy
+
+Database structure is changed only through committed Prisma migrations.
+
+Development migrations use:
+
+    npm run db:migrate
+
+Migration state can be inspected with:
+
+    npm run db:migrate:status
+
+Committed migrations are deployed to non-development environments with:
+
+    npm run db:deploy
+
+Development, test, and future production environments must use the same
+committed migration history.
+
+Manual recreation of application schemas is not an accepted deployment
+workflow.
+
+### Foundation migration
+
+V0.1-E introduced:
+
+`20260903220732_foundation`
+
+The migration is intentionally empty because V0.1 establishes persistence
+infrastructure only and does not introduce product-domain tables.
+
+Both `stitchtrack_dev` and `stitchtrack_test` have this migration applied.
+
+At this checkpoint, the only persistent Prisma table is:
+
+`_prisma_migrations`
+
+Product-domain tables are introduced in later versions.
+
+### Application architecture
+
+Prisma is infrastructure.
+
+Domain and application layers must not import Prisma Client, generated Prisma
+code, database adapters, or shared database infrastructure.
+
+Presentation code must not call Prisma directly.
+
+Infrastructure implementations may use Prisma when implementing repository
+ports defined by the application layer.
+
+These boundaries are enforced through ESLint import restrictions.
+
+### Runtime verification
+
+`scripts/verify-database.ts` verifies the runtime connection path:
+
+Prisma Client -> @prisma/adapter-pg -> pg -> PostgreSQL
+
+The verification checks the expected database name and database role without
+printing credentials.
+
+Development verification:
+
+    npm run db:verify
+
+Test verification:
+
+    DATABASE_URL="$TEST_DATABASE_URL" npm run db:verify
+
+### Security note
+
+The Prisma CLI is kept outside the runtime package because the selected CLI
+version currently contains development-tooling dependencies that should not
+ship with the application runtime.
+
+Do not use `npm audit fix --force` to rewrite Prisma's dependency graph.
+
+Dependency security must be reassessed when Prisma is upgraded.
