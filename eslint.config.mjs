@@ -7,7 +7,10 @@ const eslintConfig = defineConfig([
   ...nextTypescript,
 
   {
-    files: ["src/modules/*/domain/**/*.{ts,tsx}"],
+    files: [
+      "src/modules/*/domain/**/*.{ts,tsx}",
+      "src/shared/domain/**/*.{ts,tsx}",
+    ],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -25,12 +28,27 @@ const eslintConfig = defineConfig([
               name: "@prisma/client",
               message: "Prisma belongs to the infrastructure layer.",
             },
+            {
+              name: "zod",
+              message:
+                "Zod belongs at system boundaries, not in the domain layer.",
+            },
+            {
+              name: "pino",
+              message:
+                "Domain code must depend on no concrete logging implementation.",
+            },
           ],
           patterns: [
             {
-              group: ["next/**", "react/**"],
+              group: [
+                "next/**",
+                "react/**",
+                "zod/**",
+                "pino/**",
+              ],
               message:
-                "Domain code must remain independent from framework libraries.",
+                "Domain code must remain independent from frameworks and boundary libraries.",
             },
             {
               group: [
@@ -43,11 +61,15 @@ const eslintConfig = defineConfig([
             },
             {
               group: [
+                "@/shared/application/**",
+                "@/shared/validation/**",
+                "@/shared/infrastructure/**",
+                "@/shared/presentation/**",
                 "@/shared/database/**",
                 "@/generated/**",
               ],
               message:
-                "Domain code must not access database infrastructure.",
+                "Domain code must not depend on application, validation, presentation, or infrastructure concerns.",
             },
           ],
         },
@@ -56,7 +78,10 @@ const eslintConfig = defineConfig([
   },
 
   {
-    files: ["src/modules/*/application/**/*.{ts,tsx}"],
+    files: [
+      "src/modules/*/application/**/*.{ts,tsx}",
+      "src/shared/application/**/*.{ts,tsx}",
+    ],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -75,12 +100,27 @@ const eslintConfig = defineConfig([
               message:
                 "Application code must depend on repository interfaces, not Prisma.",
             },
+            {
+              name: "zod",
+              message:
+                "Application code must receive already validated input instead of depending on Zod.",
+            },
+            {
+              name: "pino",
+              message:
+                "Application code must depend on ApplicationLogger, not Pino.",
+            },
           ],
           patterns: [
             {
-              group: ["next/**", "react/**"],
+              group: [
+                "next/**",
+                "react/**",
+                "zod/**",
+                "pino/**",
+              ],
               message:
-                "Application code must remain independent from presentation frameworks.",
+                "Application code must remain independent from presentation frameworks and concrete boundary libraries.",
             },
             {
               group: [
@@ -92,11 +132,14 @@ const eslintConfig = defineConfig([
             },
             {
               group: [
+                "@/shared/validation/**",
+                "@/shared/infrastructure/**",
+                "@/shared/presentation/**",
                 "@/shared/database/**",
                 "@/generated/**",
               ],
               message:
-                "Application code must not access database infrastructure directly.",
+                "Application code must not access validation implementations, presentation, or infrastructure directly.",
             },
           ],
         },
@@ -108,6 +151,7 @@ const eslintConfig = defineConfig([
     files: [
       "src/app/**/*.{ts,tsx}",
       "src/modules/*/presentation/**/*.{ts,tsx}",
+      "src/shared/presentation/**/*.{ts,tsx}",
     ],
     rules: {
       "no-restricted-imports": [
@@ -119,16 +163,69 @@ const eslintConfig = defineConfig([
               message:
                 "Presentation code must call application use cases instead of Prisma.",
             },
+            {
+              name: "pino",
+              message:
+                "Presentation code must depend on the application logging abstraction instead of Pino.",
+            },
           ],
           patterns: [
             {
+              group: ["pino/**"],
+              message:
+                "Presentation code must not depend directly on Pino.",
+            },
+            {
               group: [
                 "@/modules/*/infrastructure/**",
+                "@/shared/infrastructure/**",
                 "@/shared/database/**",
                 "@/generated/**",
               ],
               message:
                 "Presentation code must not access infrastructure directly.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    files: [
+      "src/modules/*/infrastructure/**/*.{ts,tsx}",
+      "src/shared/infrastructure/**/*.{ts,tsx}",
+      "src/shared/database/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "next",
+              message:
+                "Infrastructure code must not depend on Next.js presentation concerns.",
+            },
+            {
+              name: "react",
+              message:
+                "Infrastructure code must not depend on React.",
+            },
+          ],
+          patterns: [
+            {
+              group: ["next/**", "react/**"],
+              message:
+                "Infrastructure code must remain independent from presentation frameworks.",
+            },
+            {
+              group: [
+                "@/modules/*/presentation/**",
+                "@/shared/presentation/**",
+              ],
+              message:
+                "Infrastructure code must not depend on presentation.",
             },
           ],
         },
