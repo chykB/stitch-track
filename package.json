@@ -15,7 +15,12 @@
     "db:migrate:status": "bash scripts/prisma.sh migrate status --schema prisma/schema.prisma",
     "db:deploy": "bash scripts/prisma.sh migrate deploy --schema prisma/schema.prisma",
     "db:verify": "node --env-file=.env.local --import tsx scripts/verify-database.ts",
-    "prisma:install": "npm install --prefix tools/prisma-cli"
+    "prisma:install": "npm install --prefix tools/prisma-cli",
+    "test": "vitest run --config vitest.config.mts",
+    "test:watch": "vitest --config vitest.config.mts",
+    "test:coverage": "vitest run --coverage --config vitest.config.mts",
+    "test:integration": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.integration.config.mts",
+    "test:all": "npm run test && npm run test:integration"
   },
   "dependencies": {
     "@prisma/adapter-pg": "6.19.3",
@@ -30,10 +35,12 @@
     "@types/pg": "8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "5.0.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
     "tsx": "4.23.13",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
   },
   "engines": {
     "node": ">=24.0.0"
