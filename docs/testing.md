@@ -18,8 +18,8 @@ No product-domain behavior is introduced by V0.1-F.
 
 StitchTrack uses:
 
-- Vitest 5.0.0
-- @vitest/coverage-v8 5.0.0
+- Vitest 4.1.11
+- @vitest/coverage-v8 4.1.11
 - Node.js test environment
 - PostgreSQL 16 for database integration tests
 
