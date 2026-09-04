@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stitchtrack_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stitchtrack_test
+      SHADOW_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: stitchtrack_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d stitchtrack_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.16.0
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tools/prisma-cli/package-lock.json
+
+      - name: Install application dependencies
+        run: npm ci
+
+      - name: Install Prisma CLI tooling
+        run: npm ci --prefix tools/prisma-cli
+
+      - name: Create CI environment file
+        shell: bash
+        run: |
+          {
+            printf 'DATABASE_URL=%s\n' "$DATABASE_URL"
+            printf 'TEST_DATABASE_URL=%s\n' "$TEST_DATABASE_URL"
+            printf 'SHADOW_DATABASE_URL=%s\n' "$SHADOW_DATABASE_URL"
+          } > .env.local
+
+          chmod 600 .env.local
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
+      - name: Validate Prisma schema
+        run: npm run prisma:validate
+
+      - name: Apply test database migrations
+        run: npm run db:deploy
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Integration tests
+        run: npm run test:integration
+
+      - name: Production build
+        run: npm run build
+
+      - name: Dependency audit
+        run: npm audit
