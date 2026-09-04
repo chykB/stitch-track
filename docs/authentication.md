@@ -307,18 +307,24 @@ product or security requirement.
 
 ## Better Auth runtime footprint
 
-Because StitchTrack uses Prisma as its database adapter, the authentication
-configuration should import Better Auth from:
+StitchTrack uses Better Auth with the Prisma adapter.
+
+Better Auth provides an optional:
 
 `better-auth/minimal`
 
-rather than using Better Auth's direct database layer.
+entry point for ORM-adapter deployments. It excludes Better Auth's direct
+database layer, which StitchTrack does not require when using Prisma.
+
+This is an implementation optimization, not a security or architectural
+requirement.
+
+The standard `better-auth` entry point remains acceptable if required by a
+feature or compatibility constraint.
+
+Correctness, authentication behavior, security, and maintainability take
+priority over bundle-size optimization.
 
 The Prisma adapter remains installed as:
 
 `@better-auth/prisma-adapter`
-
-and is accessed through the Better Auth Prisma adapter integration.
-
-This avoids including database functionality that StitchTrack does not use and
-keeps the authentication runtime as small as practical.
