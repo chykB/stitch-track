@@ -19,7 +19,7 @@
     "test": "vitest run --config vitest.config.mts",
     "test:watch": "vitest --config vitest.config.mts",
     "test:coverage": "vitest run --coverage --config vitest.config.mts",
-    "test:integration": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.integration.config.mts",
+    "test:integration": "bash scripts/run-integration-tests.sh",
     "test:all": "npm run test && npm run test:integration"
   },
   "dependencies": {

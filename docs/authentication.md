@@ -328,3 +328,47 @@ priority over bundle-size optimization.
 The Prisma adapter remains installed as:
 
 `@better-auth/prisma-adapter`
+
+## V0.2 authentication runtime
+
+The V0.2 runtime implementation uses Better Auth with the Prisma adapter and
+PostgreSQL-backed sessions.
+
+Email/password authentication is configured with:
+
+- minimum password length: 15 characters,
+- maximum password length: 128 characters,
+- automatic sign-in after registration disabled,
+- custom Argon2id password hashing and verification.
+
+The Argon2id implementation uses:
+
+- Argon2id,
+- Argon2 version 19,
+- memory cost 19456 KiB,
+- time cost 2,
+- parallelism 1,
+- output length 32 bytes.
+
+The authentication runtime uses the standard `better-auth` entry point.
+
+The optional `better-auth/minimal` entry point remains an implementation
+optimization that may be evaluated later. It is not required for V0.2
+correctness or security.
+
+## Integration evidence
+
+V0.2 integration tests against the dedicated `stitchtrack_test` database prove:
+
+- registration creates a User and credential Account,
+- the stored password is an Argon2id encoded hash,
+- the plaintext password is not persisted,
+- registration does not automatically create a session,
+- an exact duplicate registration does not create a second User,
+- an incorrect password is rejected without creating a session,
+- a correct password creates a session,
+- the returned session cookie resolves through Better Auth `getSession`,
+- an email casing variant does not create a second identity.
+
+Authentication integration tests run only after the test runner has replaced
+`DATABASE_URL` with the validated `TEST_DATABASE_URL`.

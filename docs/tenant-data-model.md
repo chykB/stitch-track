@@ -80,11 +80,15 @@ Plaintext passwords are never persisted.
 The password field contains an Argon2id encoded one-way hash when StitchTrack
 email/password authentication is used.
 
-Authentication account identity uses Better Auth's supported provider identity
-model.
+Authentication account identity uses Better Auth's supported account model.
 
-V0.2 will explicitly configure the account identity strategy rather than
-depending on compatibility defaults.
+StitchTrack V0.2 uses email/password authentication only. The pinned Better
+Auth 1.7.2 runtime type surface does not expose an account identity-strategy
+configuration option, so StitchTrack does not force an unsupported setting.
+
+The authentication schema retains issuer, accountId, and their compound unique
+constraint. An explicit external-provider identity strategy must be reviewed
+before social login or other OAuth/OIDC providers are introduced.
 
 ## Better Auth Session
 
