@@ -404,3 +404,40 @@ contract without depending on Prisma or Better Auth.
 
 The Prisma infrastructure adapter implements that port using an ACTIVE
 membership query scoped by both user ID and business ID.
+
+## Tenant authorization
+
+Tenant resolution and action authorization are separate concerns.
+
+TenantContext resolution answers:
+
+"Does this authenticated user currently have access to this Business?"
+
+Role authorization answers:
+
+"Is the resolved membership role permitted to perform this action?"
+
+V0.2 supports two tenant roles:
+
+- OWNER
+- MEMBER
+
+Authorization operates only on a server-resolved TenantContext. The role used
+for authorization comes from the ACTIVE BusinessMember record returned by the
+tenant membership infrastructure adapter.
+
+A role supplied by a browser, form, URL, API body, or other client-controlled
+input is never authoritative.
+
+The allowed roles for an action are trusted application policy. They must be
+defined by server-side application or use-case code and must not be derived
+from client-controlled request data.
+
+When a resolved membership role is not permitted, authorization returns the
+generic FORBIDDEN application error:
+
+"You do not have permission to perform this action."
+
+V0.2 does not introduce custom roles, granular permission records, policy
+engines, or a generic RBAC framework. Those capabilities require concrete
+product requirements before they are added.
