@@ -360,3 +360,47 @@ This model does not yet include:
 
 Those concepts must not be added to the V0.2 tenant schema without a concrete
 release requirement.
+
+## TenantContext
+
+A TenantContext is the server-side representation of an authenticated user's
+validated access to one Business.
+
+A TenantContext contains:
+
+- authenticated user ID,
+- business ID,
+- BusinessMember ID,
+- BusinessMember role.
+
+A TenantContext is created only when the authenticated user has an ACTIVE
+BusinessMember record for the exact requested Business.
+
+The requested business ID is untrusted input until membership has been checked.
+
+Tenant resolution requires all of the following to match:
+
+- authenticated user ID,
+- requested business ID,
+- membership status ACTIVE.
+
+A TenantContext is not produced when:
+
+- the request is unauthenticated,
+- the BusinessMember is SUSPENDED,
+- the user requests another Business,
+- the user has no membership,
+- the requested Business does not exist.
+
+Unauthenticated requests result in UNAUTHORIZED.
+
+Authenticated requests that fail tenant membership resolution result in the
+same FORBIDDEN application error. Tenant resolution does not reveal whether the
+Business exists or whether a membership is suspended, absent, or associated
+with another Business.
+
+The Application layer defines the tenant membership reader port and TenantContext
+contract without depending on Prisma or Better Auth.
+
+The Prisma infrastructure adapter implements that port using an ACTIVE
+membership query scoped by both user ID and business ID.
