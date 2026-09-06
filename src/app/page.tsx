@@ -1,17 +1,16 @@
-export default function HomePage() {
-  return (
-    <main className="foundation">
-      <section className="foundation__panel">
-        <p className="foundation__eyebrow">StitchTrack</p>
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-        <h1>Engineering foundation</h1>
+import { auth } from "../shared/composition/auth";
 
-        <p>The V0.1 application foundation is running.</p>
+export default async function HomePage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-        <p className="foundation__note">
-          Product workflows will be introduced in later versions.
-        </p>
-      </section>
-    </main>
+  redirect(
+    session
+      ? "/app"
+      : "/sign-in",
   );
 }

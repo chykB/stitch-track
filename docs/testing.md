@@ -18,8 +18,8 @@ No product-domain behavior is introduced by V0.1-F.
 
 StitchTrack uses:
 
-- Vitest 5.0.0
-- @vitest/coverage-v8 5.0.0
+- Vitest 4.1.11
+- @vitest/coverage-v8 4.1.11
 - Node.js test environment
 - PostgreSQL 16 for database integration tests
 
@@ -211,3 +211,33 @@ integration test pass.
 
 If an integration test attempts to run against a database whose name does not
 end in `_test`, the correct behavior is to stop before executing the suite.
+
+## Integration database process isolation
+
+Integration tests run through:
+
+`scripts/run-integration-tests.sh`
+
+The runner loads `.env.local`, verifies that `TEST_DATABASE_URL` identifies a
+database whose name ends in `_test`, and then exports:
+
+`DATABASE_URL="$TEST_DATABASE_URL"`
+
+before Vitest starts.
+
+This is important for integration tests that import production database or
+authentication modules because those modules resolve `DATABASE_URL` during
+process initialization.
+
+Integration tests must not be invoked directly with Vitest when they exercise
+the real Prisma client or Better Auth runtime.
+
+The test runner refuses to start when the configured test database does not
+have a `_test` database name.
+
+In CI, authentication tests use `http://localhost:3000` as the Better Auth
+base URL and a fresh high-entropy `BETTER_AUTH_SECRET` generated for each CI
+run.
+
+The generated CI secret is test-only and ephemeral. Production authentication
+secrets must not be stored in the repository or hardcoded into the workflow.

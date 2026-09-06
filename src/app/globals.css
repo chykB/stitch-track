@@ -25,36 +25,176 @@ body {
   min-height: 100vh;
 }
 
-.foundation {
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.auth-page {
   display: grid;
   min-height: 100vh;
   place-items: center;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
-.foundation__panel {
-  width: min(100%, 42rem);
+.auth-card {
+  width: min(100%, 28rem);
   padding: 2rem;
   background: #ffffff;
   border: 1px solid #d8e0dc;
   border-radius: 1rem;
 }
 
-.foundation__eyebrow {
+.eyebrow {
   margin: 0 0 0.5rem;
-  font-weight: 700;
   color: #145c4b;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.foundation h1 {
+.auth-card h1,
+.workspace-card h1 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 3.5rem);
 }
 
-.foundation p {
+.auth-introduction {
+  margin: 0.75rem 0 1.5rem;
+  color: #68736f;
+  line-height: 1.5;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.auth-field input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  color: #17211f;
+  background: #ffffff;
+  border: 1px solid #aeb9b4;
+  border-radius: 0.5rem;
+}
+
+.auth-field input:focus {
+  border-color: #145c4b;
+  outline: 2px solid #d8e8e3;
+  outline-offset: 1px;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 2.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+}
+
+.primary-button {
+  color: #ffffff;
+  background: #145c4b;
+  border: 1px solid #145c4b;
+}
+
+.secondary-button {
+  color: #17302b;
+  background: #ffffff;
+  border: 1px solid #b8c2be;
+}
+
+.auth-error,
+.sign-out-error {
+  margin: 0;
+  color: #a33b32;
+  font-size: 0.875rem;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: #f6f8f7;
+}
+
+.app-header {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid #d8e0dc;
+}
+
+.app-brand {
+  margin: 0;
+  color: #145c4b;
+  font-weight: 800;
+}
+
+.app-user {
+  margin: 0.2rem 0 0;
+  color: #68736f;
+  font-size: 0.875rem;
+}
+
+.sign-out-control {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+}
+
+.app-content {
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.workspace-card {
+  padding: 2rem;
+  background: #ffffff;
+  border: 1px solid #d8e0dc;
+  border-radius: 1rem;
+}
+
+.workspace-card p {
   line-height: 1.6;
 }
 
-.foundation__note {
+.workspace-note {
   color: #68736f;
+}
+
+@media (max-width: 36rem) {
+  .app-header {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .app-content {
+    padding: 1rem;
+  }
+
+  .auth-card,
+  .workspace-card {
+    padding: 1.5rem;
+  }
 }

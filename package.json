@@ -19,12 +19,15 @@
     "test": "vitest run --config vitest.config.mts",
     "test:watch": "vitest --config vitest.config.mts",
     "test:coverage": "vitest run --coverage --config vitest.config.mts",
-    "test:integration": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.integration.config.mts",
+    "test:integration": "bash scripts/run-integration-tests.sh",
     "test:all": "npm run test && npm run test:integration"
   },
   "dependencies": {
+    "@better-auth/prisma-adapter": "1.7.2",
+    "@node-rs/argon2": "2.2.0",
     "@prisma/adapter-pg": "6.19.3",
     "@prisma/client": "6.19.3",
+    "better-auth": "1.7.2",
     "next": "16.3.4",
     "pg": "8.23.0",
     "pino": "10.3.1",
@@ -37,12 +40,12 @@
     "@types/pg": "8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitest/coverage-v8": "5.0.0",
+    "@vitest/coverage-v8": "4.1.11",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
     "tsx": "4.23.13",
     "typescript": "5.9.3",
-    "vitest": "5.0.0"
+    "vitest": "4.1.11"
   },
   "engines": {
     "node": ">=24.0.0"
