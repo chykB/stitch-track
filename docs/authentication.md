@@ -372,3 +372,39 @@ V0.2 integration tests against the dedicated `stitchtrack_test` database prove:
 
 Authentication integration tests run only after the test runner has replaced
 `DATABASE_URL` with the validated `TEST_DATABASE_URL`.
+
+## Authenticated application shell
+
+V0.2 introduces the minimum authenticated application shell.
+
+The root route performs a server-side session lookup and redirects:
+
+- authenticated users to `/app`,
+- unauthenticated users to `/sign-in`.
+
+The `/sign-in` page also validates the session on the server. An already
+authenticated user is redirected to `/app` rather than shown the sign-in form.
+
+The `/app` layout is the protected application boundary. It performs a full
+Better Auth server-side session lookup before rendering authenticated content.
+If no valid session exists, it redirects to `/sign-in`.
+
+The browser auth client is used only for interactive sign-in and sign-out.
+Authentication authority remains server-side.
+
+V0.2 runtime verification proved:
+
+- an unauthenticated request to `/app` redirects to `/sign-in`,
+- an unauthenticated request to `/` redirects to `/sign-in`,
+- valid email/password credentials create a working session,
+- a valid session can render `/app`,
+- an authenticated request to `/sign-in` redirects to `/app`,
+- signing out invalidates the session,
+- the same browser session can no longer access `/app` after sign-out.
+
+The authenticated shell does not yet select or authorize a Business. Tenant
+resolution and role authorization remain separate server-side boundaries and
+will be connected to tenant-specific product routes when those routes exist.
+
+V0.2 does not introduce client, order, garment, measurement, fitting, payment,
+or client-portal workflows.
