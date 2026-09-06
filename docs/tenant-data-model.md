@@ -441,3 +441,30 @@ generic FORBIDDEN application error:
 V0.2 does not introduce custom roles, granular permission records, policy
 engines, or a generic RBAC framework. Those capabilities require concrete
 product requirements before they are added.
+
+## Cross-tenant security evidence
+
+V0.2 integration tests treat tenant identifiers and authorization inputs as
+hostile and prove the current tenant boundary rejects:
+
+- a Business A user requesting Business B,
+- a Business B user requesting Business A,
+- a MEMBER attempting to use permissive action roles to bypass tenant access,
+- forged client-supplied role and membership identifiers,
+- fabricated Business identifiers,
+- suspended memberships.
+
+The tests also prove that authorization reads current BusinessMember state on
+each tenant resolution:
+
+- an OWNER demoted to MEMBER loses OWNER-only authorization on the next check,
+- an ACTIVE membership changed to SUSPENDED loses tenant access on the next
+  check.
+
+BusinessMember role and status are therefore not treated as authoritative
+session claims or client-controlled state.
+
+V0.2 does not yet contain tenant-owned domain records such as Clients, Orders,
+Garments, Measurements, Fittings, or Payments. Resource-level cross-tenant data
+access tests must be added when the first tenant-owned domain persistence is
+introduced in V0.3 and must not be claimed as proven by the V0.2 tests.
