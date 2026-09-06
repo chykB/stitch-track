@@ -92,6 +92,9 @@ model Business {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   members   BusinessMember[]
+  clients   Client[]
+  orders    Order[]
+  garments  Garment[]
 
   @@map("business")
 }
@@ -112,4 +115,58 @@ model BusinessMember {
   @@unique([businessId, userId], map: "business_member_businessId_userId_uidx")
   @@index([userId])
   @@map("business_member")
+}
+
+model Client {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId String   @db.Uuid
+  name       String
+  phone      String
+  email      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  orders Order[]
+
+  @@unique([id, businessId], map: "client_id_businessId_uidx")
+  @@index([businessId])
+  @@map("client")
+}
+
+model Order {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId String   @db.Uuid
+  clientId   String   @db.Uuid
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict)
+
+  garments Garment[]
+
+  @@unique([id, businessId], map: "order_id_businessId_uidx")
+  @@index([businessId])
+  @@index([businessId, clientId])
+  @@map("order")
+}
+
+model Garment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId String   @db.Uuid
+  orderId    String   @db.Uuid
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  order Order @relation(fields: [orderId, businessId], references: [id, businessId], onDelete: Restrict)
+
+  @@index([businessId])
+  @@index([businessId, orderId])
+  @@map("garment")
 }
