@@ -234,3 +234,17 @@ the real Prisma client or Better Auth runtime.
 
 The test runner refuses to start when the configured test database does not
 have a `_test` database name.
+
+In CI, authentication tests use `http://localhost:3000` as the Better Auth
+base URL and a fresh high-entropy `BETTER_AUTH_SECRET` generated for each CI
+run.
+
+The generated CI secret is test-only and ephemeral. Production authentication
+secrets must not be stored in the repository or hardcoded into the workflow.
+
+In CI, authentication tests use `http://localhost:3000` as the Better Auth
+base URL and a fresh high-entropy `BETTER_AUTH_SECRET` generated for each CI
+run.
+
+The generated CI secret is test-only and ephemeral. Production authentication
+secrets must not be stored in the repository or hardcoded into the workflow.
