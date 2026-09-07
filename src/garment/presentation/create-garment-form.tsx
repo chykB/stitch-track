@@ -5,40 +5,35 @@ import {
 } from "react";
 
 import {
-  createOrderAction,
-} from "./actions/create-order-action";
+  createGarmentAction,
+} from "./actions/create-garment-action";
 import type {
-  CreateOrderActionState,
-} from "./create-order-action-state";
-import {
-  CreateGarmentForm,
-} from "../../garment/presentation/create-garment-form";
+  CreateGarmentActionState,
+} from "./create-garment-action-state";
 
-type CreateOrderFormProps =
+type CreateGarmentFormProps =
   Readonly<{
     businessId: string;
-    clientId: string;
-    clientName: string;
+    orderId: string;
   }>;
 
 const INITIAL_STATE:
-  CreateOrderActionState = {
+  CreateGarmentActionState = {
     status: "idle",
     message: null,
     issues: [],
-    order: null,
+    garment: null,
   };
 
-export function CreateOrderForm({
+export function CreateGarmentForm({
   businessId,
-  clientId,
-  clientName,
-}: CreateOrderFormProps) {
+  orderId,
+}: CreateGarmentFormProps) {
   const action =
-    createOrderAction.bind(
+    createGarmentAction.bind(
       null,
       businessId,
-      clientId,
+      orderId,
     );
 
   const [
@@ -50,32 +45,41 @@ export function CreateOrderForm({
     INITIAL_STATE,
   );
 
+  function issueFor(
+    path: string,
+  ): string | undefined {
+    return state.issues.find(
+      (issue) =>
+        issue.path === path,
+    )?.message;
+  }
+
   return (
     <section className="product-section">
       <div>
         <p className="eyebrow">
-          Step 2
+          Step 3
         </p>
 
-        <h2>Create order</h2>
+        <h2>Add garment</h2>
 
         <p className="workspace-note">
-          Start a tailoring order for{" "}
-          <strong>{clientName}</strong>.
+          Record the physical garment
+          being made for this order.
         </p>
       </div>
 
       <div className="workflow-parent">
         <span className="summary-label">
-          Client
+          Order
         </span>
 
         <strong>
-          {clientName}
+          Current order
         </strong>
 
         <span className="record-id">
-          Client ID: {clientId}
+          Order ID: {orderId}
         </span>
       </div>
 
@@ -83,6 +87,22 @@ export function CreateOrderForm({
         action={formAction}
         className="product-form"
       >
+        <label className="product-field">
+          <span>Garment name</span>
+
+          <input
+            type="text"
+            name="name"
+            required
+          />
+
+          {issueFor("name") ? (
+            <small className="field-error">
+              {issueFor("name")}
+            </small>
+          ) : null}
+        </label>
+
         {state.status === "error" ? (
           <p
             className="form-error"
@@ -93,7 +113,7 @@ export function CreateOrderForm({
         ) : null}
 
         {state.status === "success" &&
-        state.order ? (
+        state.garment ? (
           <div
             className="form-success"
             role="status"
@@ -102,9 +122,13 @@ export function CreateOrderForm({
               {state.message}
             </strong>
 
+            <span>
+              {state.garment.name}
+            </span>
+
             <span className="record-id">
-              Order ID:{" "}
-              {state.order.id}
+              Garment ID:{" "}
+              {state.garment.id}
             </span>
           </div>
         ) : null}
@@ -118,20 +142,12 @@ export function CreateOrderForm({
           }
         >
           {isPending
-            ? "Creating order..."
+            ? "Creating garment..."
             : state.status === "success"
-              ? "Order created"
-              : "Create order"}
+              ? "Garment created"
+              : "Add garment"}
         </button>
       </form>
-
-      {state.status === "success" &&
-      state.order ? (
-        <CreateGarmentForm
-          businessId={businessId}
-          orderId={state.order.id}
-        />
-      ) : null}
     </section>
   );
 }
