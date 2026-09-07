@@ -76,6 +76,12 @@ jobs:
       - name: Apply test database migrations
         run: npm run db:deploy
 
+      - name: Verify test database identity
+        run: npm run db:verify
+
+      - name: Verify migration status
+        run: npm run db:migrate:status
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -91,5 +97,8 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Dependency audit
+      - name: Application dependency audit
         run: npm audit
+
+      - name: Prisma CLI dependency audit
+        run: npm audit --prefix tools/prisma-cli
