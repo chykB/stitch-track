@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useActionState,
 } from "react";
@@ -14,6 +15,8 @@ import type {
 type CreateGarmentFormProps =
   Readonly<{
     businessId: string;
+    clientId: string;
+    clientName: string;
     orderId: string;
   }>;
 
@@ -27,6 +30,8 @@ const INITIAL_STATE:
 
 export function CreateGarmentForm({
   businessId,
+  clientId,
+  clientName,
   orderId,
 }: CreateGarmentFormProps) {
   const action =
@@ -148,6 +153,80 @@ export function CreateGarmentForm({
               : "Add garment"}
         </button>
       </form>
+
+      {state.status === "success" &&
+      state.garment ? (
+        <section
+          className="workflow-complete"
+          aria-labelledby="workflow-complete-title"
+        >
+          <div>
+            <p className="eyebrow">
+              Workflow complete
+            </p>
+
+            <h3 id="workflow-complete-title">
+              Client, order, and garment created
+            </h3>
+
+            <p className="workspace-note">
+              The V0.3 tailoring workflow
+              has been recorded successfully.
+            </p>
+          </div>
+
+          <div className="workflow-records">
+            <div className="workflow-record">
+              <span className="summary-label">
+                Client
+              </span>
+
+              <strong>
+                {clientName}
+              </strong>
+
+              <span className="record-id">
+                {clientId}
+              </span>
+            </div>
+
+            <div className="workflow-record">
+              <span className="summary-label">
+                Order
+              </span>
+
+              <strong>
+                Tailoring order
+              </strong>
+
+              <span className="record-id">
+                {orderId}
+              </span>
+            </div>
+
+            <div className="workflow-record">
+              <span className="summary-label">
+                Garment
+              </span>
+
+              <strong>
+                {state.garment.name}
+              </strong>
+
+              <span className="record-id">
+                {state.garment.id}
+              </span>
+            </div>
+          </div>
+
+          <Link
+            className="secondary-button workflow-new-link"
+            href={`/app/${businessId}`}
+          >
+            Start another workflow
+          </Link>
+        </section>
+      ) : null}
     </section>
   );
 }

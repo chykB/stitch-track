@@ -81,6 +81,9 @@ export function CreateClientForm({
             name="name"
             autoComplete="name"
             required
+            disabled={
+              state.status === "success"
+            }
           />
 
           {issueFor("name") ? (
@@ -98,6 +101,9 @@ export function CreateClientForm({
             name="phone"
             autoComplete="tel"
             required
+            disabled={
+              state.status === "success"
+            }
           />
 
           {issueFor("phone") ? (
@@ -119,6 +125,9 @@ export function CreateClientForm({
             type="email"
             name="email"
             autoComplete="email"
+            disabled={
+              state.status === "success"
+            }
           />
 
           {issueFor("email") ? (
@@ -161,11 +170,16 @@ export function CreateClientForm({
         <button
           className="primary-button"
           type="submit"
-          disabled={isPending}
+          disabled={
+            isPending ||
+            state.status === "success"
+          }
         >
           {isPending
             ? "Creating client..."
-            : "Create client"}
+            : state.status === "success"
+              ? "Client created"
+              : "Create client"}
         </button>
       </form>
 

@@ -129,6 +129,8 @@ export function CreateOrderForm({
       state.order ? (
         <CreateGarmentForm
           businessId={businessId}
+          clientId={clientId}
+          clientName={clientName}
           orderId={state.order.id}
         />
       ) : null}

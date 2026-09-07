@@ -384,3 +384,46 @@ button:disabled {
   border: 1px solid #d8e0dc;
   border-radius: 0.6rem;
 }
+
+.workflow-complete {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 2px solid #145c4b;
+  border-radius: 0.8rem;
+}
+
+.workflow-complete h3 {
+  margin: 0;
+}
+
+.workflow-records {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.workflow-record {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 1rem;
+  background: #f6f8f7;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.6rem;
+}
+
+.workflow-new-link {
+  width: fit-content;
+  text-decoration: none;
+}
+
+@media (max-width: 48rem) {
+  .workflow-records {
+    grid-template-columns: 1fr;
+  }
+}
