@@ -10,6 +10,9 @@ import {
 import type {
   CreateClientActionState,
 } from "./create-client-action-state";
+import {
+  CreateOrderForm,
+} from "../../order/presentation/create-order-form";
 
 type CreateClientFormProps =
   Readonly<{
@@ -165,6 +168,15 @@ export function CreateClientForm({
             : "Create client"}
         </button>
       </form>
+
+      {state.status === "success" &&
+      state.client ? (
+        <CreateOrderForm
+          businessId={businessId}
+          clientId={state.client.id}
+          clientName={state.client.name}
+        />
+      ) : null}
     </section>
   );
 }

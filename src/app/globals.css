@@ -374,3 +374,13 @@ button:disabled {
   font-size: 0.75rem;
   overflow-wrap: anywhere;
 }
+
+.workflow-parent {
+  display: grid;
+  gap: 0.3rem;
+  max-width: 36rem;
+  padding: 0.9rem 1rem;
+  background: #f6f8f7;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.6rem;
+}
