@@ -297,3 +297,80 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+.product-section {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #d8e0dc;
+}
+
+.product-section h2 {
+  margin: 0;
+}
+
+.product-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 36rem;
+}
+
+.product-field {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.product-field input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  color: #17211f;
+  background: #ffffff;
+  border: 1px solid #aeb9b4;
+  border-radius: 0.5rem;
+}
+
+.product-field input:focus {
+  border-color: #145c4b;
+  outline: 2px solid #d8e8e3;
+  outline-offset: 1px;
+}
+
+.optional-label {
+  color: #68736f;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.field-error,
+.form-error {
+  color: #a33b32;
+}
+
+.field-error {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.form-error {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.form-success {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  color: #17302b;
+  background: #edf5f2;
+  border: 1px solid #b8d5cc;
+  border-radius: 0.6rem;
+}
+
+.record-id {
+  color: #68736f;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}

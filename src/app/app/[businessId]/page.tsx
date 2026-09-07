@@ -17,6 +17,9 @@ import {
 import {
   prismaActiveBusinessReader,
 } from "../../../shared/infrastructure/tenancy/prisma-active-business-reader";
+import {
+  CreateClientForm,
+} from "../../../client/presentation/create-client-form";
 
 type BusinessWorkspacePageProps =
   Readonly<{
@@ -139,10 +142,11 @@ export default async function BusinessWorkspacePage({
         </div>
       </div>
 
-      <p className="workspace-note">
-        Product creation controls will be
-        introduced in the next checkpoint.
-      </p>
+      <CreateClientForm
+        businessId={
+          tenantContext.businessId
+        }
+      />
     </section>
   );
 }
