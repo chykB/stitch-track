@@ -198,3 +198,232 @@ button:disabled {
     padding: 1.5rem;
   }
 }
+
+.business-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.business-link {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  color: #17211f;
+  text-decoration: none;
+  background: #ffffff;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.75rem;
+}
+
+.business-link:hover {
+  border-color: #145c4b;
+}
+
+.business-link:focus-visible {
+  outline: 2px solid #145c4b;
+  outline-offset: 2px;
+}
+
+.business-name {
+  font-weight: 700;
+}
+
+.business-role {
+  color: #68736f;
+  font-size: 0.875rem;
+}
+
+.empty-state {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  color: #68736f;
+  background: #f6f8f7;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.75rem;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.workspace-back-link {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  color: #145c4b;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.workspace-back-link:hover {
+  text-decoration: underline;
+}
+
+.workspace-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.workspace-summary > div {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  background: #f6f8f7;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.75rem;
+}
+
+.summary-label {
+  color: #68736f;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 36rem) {
+  .business-link {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .workspace-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.product-section {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #d8e0dc;
+}
+
+.product-section h2 {
+  margin: 0;
+}
+
+.product-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 36rem;
+}
+
+.product-field {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.product-field input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  color: #17211f;
+  background: #ffffff;
+  border: 1px solid #aeb9b4;
+  border-radius: 0.5rem;
+}
+
+.product-field input:focus {
+  border-color: #145c4b;
+  outline: 2px solid #d8e8e3;
+  outline-offset: 1px;
+}
+
+.optional-label {
+  color: #68736f;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.field-error,
+.form-error {
+  color: #a33b32;
+}
+
+.field-error {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.form-error {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.form-success {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  color: #17302b;
+  background: #edf5f2;
+  border: 1px solid #b8d5cc;
+  border-radius: 0.6rem;
+}
+
+.record-id {
+  color: #68736f;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.workflow-parent {
+  display: grid;
+  gap: 0.3rem;
+  max-width: 36rem;
+  padding: 0.9rem 1rem;
+  background: #f6f8f7;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.6rem;
+}
+
+.workflow-complete {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 2px solid #145c4b;
+  border-radius: 0.8rem;
+}
+
+.workflow-complete h3 {
+  margin: 0;
+}
+
+.workflow-records {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.workflow-record {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 1rem;
+  background: #f6f8f7;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.6rem;
+}
+
+.workflow-new-link {
+  width: fit-content;
+  text-decoration: none;
+}
+
+@media (max-width: 48rem) {
+  .workflow-records {
+    grid-template-columns: 1fr;
+  }
+}
