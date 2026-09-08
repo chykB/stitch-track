@@ -11,6 +11,12 @@ import {
 import type {
   CreateGarmentActionState,
 } from "./create-garment-action-state";
+import {
+  CreateMeasurementVersionForm,
+} from "../../measurement/presentation/create-measurement-version-form";
+import {
+  CreateStyleReferenceForm,
+} from "../../style-reference/presentation/create-style-reference-form";
 
 type CreateGarmentFormProps =
   Readonly<{
@@ -156,76 +162,107 @@ export function CreateGarmentForm({
 
       {state.status === "success" &&
       state.garment ? (
-        <section
-          className="workflow-complete"
-          aria-labelledby="workflow-complete-title"
-        >
-          <div>
-            <p className="eyebrow">
-              Workflow complete
-            </p>
-
-            <h3 id="workflow-complete-title">
-              Client, order, and garment created
-            </h3>
-
-            <p className="workspace-note">
-              The V0.3 tailoring workflow
-              has been recorded successfully.
-            </p>
-          </div>
-
-          <div className="workflow-records">
-            <div className="workflow-record">
-              <span className="summary-label">
-                Client
-              </span>
-
-              <strong>
-                {clientName}
-              </strong>
-
-              <span className="record-id">
-                {clientId}
-              </span>
-            </div>
-
-            <div className="workflow-record">
-              <span className="summary-label">
-                Order
-              </span>
-
-              <strong>
-                Tailoring order
-              </strong>
-
-              <span className="record-id">
-                {orderId}
-              </span>
-            </div>
-
-            <div className="workflow-record">
-              <span className="summary-label">
-                Garment
-              </span>
-
-              <strong>
-                {state.garment.name}
-              </strong>
-
-              <span className="record-id">
-                {state.garment.id}
-              </span>
-            </div>
-          </div>
-
-          <Link
-            className="secondary-button workflow-new-link"
-            href={`/app/${businessId}`}
+        <>
+          <section
+            className="workflow-complete"
+            aria-labelledby="core-records-title"
           >
-            Start another workflow
-          </Link>
-        </section>
+            <div>
+              <p className="eyebrow">
+                Core records created
+              </p>
+
+              <h3 id="core-records-title">
+                Client, order, and garment ready
+              </h3>
+
+              <p className="workspace-note">
+                Continue with V0.4 by
+                recording measurement
+                history and garment style
+                references.
+              </p>
+            </div>
+
+            <div className="workflow-records">
+              <div className="workflow-record">
+                <span className="summary-label">
+                  Client
+                </span>
+
+                <strong>
+                  {clientName}
+                </strong>
+
+                <span className="record-id">
+                  {clientId}
+                </span>
+              </div>
+
+              <div className="workflow-record">
+                <span className="summary-label">
+                  Order
+                </span>
+
+                <strong>
+                  Tailoring order
+                </strong>
+
+                <span className="record-id">
+                  {orderId}
+                </span>
+              </div>
+
+              <div className="workflow-record">
+                <span className="summary-label">
+                  Garment
+                </span>
+
+                <strong>
+                  {state.garment.name}
+                </strong>
+
+                <span className="record-id">
+                  {state.garment.id}
+                </span>
+              </div>
+            </div>
+
+            <div className="workflow-actions">
+              <Link
+                className="primary-button workflow-new-link"
+                href={
+                  `/app/${businessId}/records/${state.garment.id}`
+                }
+              >
+                View recorded history
+              </Link>
+
+              <Link
+                className="secondary-button workflow-new-link"
+                href={`/app/${businessId}`}
+              >
+                Start another workflow
+              </Link>
+            </div>
+          </section>
+
+          <CreateMeasurementVersionForm
+            businessId={businessId}
+            clientId={clientId}
+            clientName={clientName}
+          />
+
+          <CreateStyleReferenceForm
+            businessId={businessId}
+            garmentId={
+              state.garment.id
+            }
+            garmentName={
+              state.garment.name
+            }
+          />
+        </>
       ) : null}
     </section>
   );
