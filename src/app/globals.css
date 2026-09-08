@@ -427,3 +427,204 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+.product-field select,
+.product-field textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  color: #17211f;
+  background: #ffffff;
+  border: 1px solid #aeb9b4;
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.product-field select {
+  min-height: 2.75rem;
+}
+
+.product-field textarea {
+  resize: vertical;
+}
+
+.product-field select:focus,
+.product-field textarea:focus {
+  border-color: #145c4b;
+  outline: 2px solid #d8e8e3;
+  outline-offset: 1px;
+}
+
+.measurement-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.measurement-list-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.measurement-list-heading p {
+  margin: 0.25rem 0 0;
+}
+
+.measurement-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.5fr)
+    minmax(7rem, 0.75fr)
+    auto;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 1rem;
+  background: #f6f8f7;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.6rem;
+}
+
+.measurement-remove {
+  align-self: end;
+}
+
+@media (max-width: 42rem) {
+  .measurement-list-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .measurement-row {
+    grid-template-columns: 1fr;
+  }
+
+  .measurement-remove {
+    width: fit-content;
+  }
+}
+
+.workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.workflow-actions .primary-button,
+.workflow-actions .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.record-history-section {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #d8e0dc;
+}
+
+.record-history-section h2 {
+  margin: 0;
+}
+
+.history-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.history-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f6f8f7;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.75rem;
+}
+
+.history-card > div:first-child {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.history-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.history-card-heading > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.history-unit {
+  padding: 0.25rem 0.5rem;
+  color: #17302b;
+  background: #edf5f2;
+  border: 1px solid #b8d5cc;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.measurement-history-values {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.measurement-history-values > div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.5rem;
+}
+
+.measurement-history-values dt {
+  color: #68736f;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.measurement-history-values dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.history-note {
+  margin: 0;
+  color: #68736f;
+  white-space: pre-wrap;
+}
+
+.reference-link {
+  width: fit-content;
+  color: #145c4b;
+  font-weight: 700;
+}
+
+.reference-link:focus-visible {
+  outline: 2px solid #145c4b;
+  outline-offset: 2px;
+}
+
+@media (max-width: 48rem) {
+  .measurement-history-values {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .workflow-actions .workflow-new-link {
+    width: 100%;
+  }
+}
