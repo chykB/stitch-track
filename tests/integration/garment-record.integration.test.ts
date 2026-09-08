@@ -21,6 +21,9 @@ vi.mock(
 );
 
 import {
+  prismaAgreementLifecycleRepository,
+} from "@/agreement/infrastructure/prisma-agreement-lifecycle-repository";
+import {
   getGarmentRecordForCurrentTenant,
 } from "@/garment/composition/get-garment-record";
 import {
@@ -160,45 +163,91 @@ describe(
         },
       });
 
-      await prismaMeasurementVersionRepository
-        .create({
-          businessId:
-            BUSINESS_A_ID,
-          clientId:
-            CLIENT_A_ID,
-          measuredAt:
-            new Date(
-              "2026-09-08T00:00:00.000Z",
-            ),
-          unit:
-            "CENTIMETER",
-          note:
-            "Record page fixture",
-          entries: [
-            {
-              label:
-                "Waist",
-              normalizedKey:
-                "waist",
-              value:
-                "80.5",
-            },
-          ],
-        });
+      const measurementVersion =
+        await prismaMeasurementVersionRepository
+          .create({
+            businessId:
+              BUSINESS_A_ID,
+            clientId:
+              CLIENT_A_ID,
+            measuredAt:
+              new Date(
+                "2026-09-08T00:00:00.000Z",
+              ),
+            unit:
+              "CENTIMETER",
+            note:
+              "Record page fixture",
+            entries: [
+              {
+                label:
+                  "Waist",
+                normalizedKey:
+                  "waist",
+                value:
+                  "80.5",
+              },
+            ],
+          });
 
-      await prismaStyleReferenceRepository
-        .create({
-          businessId:
-            BUSINESS_A_ID,
-          garmentId:
-            GARMENT_A_ID,
-          sourceUrl:
-            "https://example.com/styles/emerald-gown.jpg",
-          label:
-            "Front inspiration",
-          note:
-            "Reference only",
-        });
+      const styleReference =
+        await prismaStyleReferenceRepository
+          .create({
+            businessId:
+              BUSINESS_A_ID,
+            garmentId:
+              GARMENT_A_ID,
+            sourceUrl:
+              "https://example.com/styles/emerald-gown.jpg",
+            label:
+              "Front inspiration",
+            note:
+              "Reference only",
+          });
+
+      await prismaAgreementLifecycleRepository
+        .withGarmentLifecycle(
+          {
+            businessId:
+              BUSINESS_A_ID,
+            garmentId:
+              GARMENT_A_ID,
+          },
+          (session) =>
+            session.createVersion({
+              businessId:
+                BUSINESS_A_ID,
+              clientId:
+                CLIENT_A_ID,
+              orderId:
+                ORDER_A_ID,
+              garmentId:
+                GARMENT_A_ID,
+              revisionNumber:
+                1,
+              measurementVersionId:
+                measurementVersion.id,
+              designSummary:
+                "Emerald fitted gown",
+              fabricDescription:
+                "Client supplied fabric",
+              quantity:
+                1,
+              priceAmount:
+                "85000",
+              currency:
+                "NGN",
+              deliveryDate:
+                "2026-10-20",
+              note:
+                "Initial agreement",
+              styleReferenceIds: [
+                styleReference.id,
+              ],
+              supersedesAgreementVersionId:
+                null,
+            }),
+        );
     });
 
     beforeEach(() => {
@@ -219,6 +268,39 @@ describe(
     });
 
     afterAll(async () => {
+      await prisma.agreementResolution.deleteMany({
+        where: {
+          businessId: {
+            in: [
+              BUSINESS_A_ID,
+              BUSINESS_B_ID,
+            ],
+          },
+        },
+      });
+
+      await prisma.agreementStyleReference.deleteMany({
+        where: {
+          businessId: {
+            in: [
+              BUSINESS_A_ID,
+              BUSINESS_B_ID,
+            ],
+          },
+        },
+      });
+
+      await prisma.agreementVersion.deleteMany({
+        where: {
+          businessId: {
+            in: [
+              BUSINESS_A_ID,
+              BUSINESS_B_ID,
+            ],
+          },
+        },
+      });
+
       await prisma.styleReference.deleteMany({
         where: {
           businessId: {
@@ -379,6 +461,53 @@ describe(
               "Front inspiration",
           }),
         ]);
+
+
+        expect(
+          record.agreementHistory,
+        ).toHaveLength(1);
+
+        expect(
+          record
+            .agreementHistory[0]
+            ?.version,
+        ).toMatchObject({
+          businessId:
+            BUSINESS_A_ID,
+          clientId:
+            CLIENT_A_ID,
+          orderId:
+            ORDER_A_ID,
+          garmentId:
+            GARMENT_A_ID,
+          revisionNumber:
+            1,
+          designSummary:
+            "Emerald fitted gown",
+          priceAmount:
+            "85000",
+          currency:
+            "NGN",
+          deliveryDate:
+            "2026-10-20",
+        });
+
+        expect(
+          record
+            .agreementHistory[0]
+            ?.version
+            .styleReferenceIds,
+        ).toEqual([
+          record
+            .styleReferences[0]
+            ?.id,
+        ]);
+
+        expect(
+          record
+            .agreementHistory[0]
+            ?.resolution,
+        ).toBeNull();
       },
     );
 

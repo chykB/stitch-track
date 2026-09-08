@@ -6,6 +6,12 @@ import {
 import { z } from "zod";
 
 import {
+  CreateAgreementVersionForm,
+} from "../../../../../agreement/presentation/create-agreement-version-form";
+import {
+  RecordAgreementResolutionForm,
+} from "../../../../../agreement/presentation/record-agreement-resolution-form";
+import {
   getGarmentRecordForCurrentTenant,
 } from "../../../../../garment/composition/get-garment-record";
 import {
@@ -80,6 +86,31 @@ export default async function GarmentRecordPage({
 
     throw error;
   }
+
+  const latestAgreementEntry =
+    record.agreementHistory[
+      record.agreementHistory.length -
+        1
+    ] ?? null;
+
+  const latestAgreementOutcome =
+    latestAgreementEntry
+      ?.resolution
+      ?.outcome ?? null;
+
+  const canCreateAgreementVersion =
+    !latestAgreementEntry ||
+    latestAgreementOutcome ===
+      "REJECTED" ||
+    latestAgreementOutcome ===
+      "WITHDRAWN";
+
+  const canResolveLatestAgreement =
+    Boolean(
+      latestAgreementEntry &&
+      !latestAgreementEntry
+        .resolution,
+    );
 
   return (
     <section className="workspace-card">
@@ -291,6 +322,425 @@ export default async function GarmentRecordPage({
           </div>
         )}
       </section>
+
+      <section
+        className="record-history-section"
+        aria-labelledby="agreement-history-title"
+      >
+        <div>
+          <p className="eyebrow">
+            Garment agreement
+          </p>
+
+          <h2 id="agreement-history-title">
+            Agreement history
+          </h2>
+
+          <p className="workspace-note">
+            Each revision preserves the
+            exact measurements, references,
+            commercial terms, and final
+            decision recorded at that point
+            in time.
+          </p>
+        </div>
+
+        {record.agreementHistory.length ===
+        0 ? (
+          <div className="empty-state">
+            <p>
+              No agreement version has
+              been recorded yet.
+            </p>
+          </div>
+        ) : (
+          <div className="history-list">
+            {record.agreementHistory.map(
+              (entry) => {
+                const selectedMeasurement =
+                  entry.version
+                    .measurementVersionId
+                    ? record
+                        .measurementVersions
+                        .find(
+                          (version) =>
+                            version.id ===
+                            entry
+                              .version
+                              .measurementVersionId,
+                        )
+                    : null;
+
+                return (
+                  <article
+                    className="history-card"
+                    key={
+                      entry.version.id
+                    }
+                  >
+                    <div className="history-card-heading">
+                      <div>
+                        <strong>
+                          Revision{" "}
+                          {
+                            entry
+                              .version
+                              .revisionNumber
+                          }
+                        </strong>
+
+                        <span className="record-id">
+                          {
+                            entry
+                              .version
+                              .id
+                          }
+                        </span>
+                      </div>
+
+                      <span className="history-unit">
+                        {entry.resolution
+                          ?.outcome ??
+                          "PENDING"}
+                      </span>
+                    </div>
+
+                    <dl className="agreement-history-values">
+                      <div>
+                        <dt>
+                          Quantity
+                        </dt>
+
+                        <dd>
+                          {
+                            entry
+                              .version
+                              .quantity
+                          }
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt>
+                          Price
+                        </dt>
+
+                        <dd>
+                          {
+                            entry
+                              .version
+                              .currency
+                          }{" "}
+                          {
+                            entry
+                              .version
+                              .priceAmount
+                          }
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt>
+                          Delivery
+                        </dt>
+
+                        <dd>
+                          {measurementDateFormatter.format(
+                            new Date(
+                              `${entry.version.deliveryDate}T00:00:00.000Z`,
+                            ),
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+
+                    <div className="agreement-history-detail">
+                      <span className="summary-label">
+                        Design summary
+                      </span>
+
+                      <p>
+                        {
+                          entry
+                            .version
+                            .designSummary
+                        }
+                      </p>
+                    </div>
+
+                    {entry.version
+                      .fabricDescription ? (
+                      <div className="agreement-history-detail">
+                        <span className="summary-label">
+                          Fabric
+                        </span>
+
+                        <p>
+                          {
+                            entry
+                              .version
+                              .fabricDescription
+                          }
+                        </p>
+                      </div>
+                    ) : null}
+
+                    <div className="agreement-history-detail">
+                      <span className="summary-label">
+                        Measurement version
+                      </span>
+
+                      {selectedMeasurement ? (
+                        <>
+                          <strong>
+                            {measurementDateFormatter.format(
+                              selectedMeasurement
+                                .measuredAt,
+                            )}
+                            {" · "}
+                            {selectedMeasurement
+                              .unit ===
+                            "CENTIMETER"
+                              ? "cm"
+                              : "in"}
+                          </strong>
+
+                          <span className="record-id">
+                            {
+                              selectedMeasurement
+                                .id
+                            }
+                          </span>
+                        </>
+                      ) : (
+                        <span className="workspace-note">
+                          No measurement
+                          version attached.
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="agreement-history-detail">
+                      <span className="summary-label">
+                        Exact style references
+                      </span>
+
+                      {entry.version
+                        .styleReferenceIds
+                        .length === 0 ? (
+                        <span className="workspace-note">
+                          No style references
+                          attached.
+                        </span>
+                      ) : (
+                        <ul className="agreement-reference-list">
+                          {entry.version.styleReferenceIds.map(
+                            (
+                              styleReferenceId,
+                            ) => {
+                              const reference =
+                                record.styleReferences.find(
+                                  (
+                                    candidate,
+                                  ) =>
+                                    candidate.id ===
+                                    styleReferenceId,
+                                );
+
+                              return (
+                                <li
+                                  key={
+                                    styleReferenceId
+                                  }
+                                >
+                                  <div>
+                                    <strong>
+                                      {reference
+                                        ?.label ??
+                                        "Recorded reference"}
+                                    </strong>
+
+                                    <span className="record-id">
+                                      {
+                                        styleReferenceId
+                                      }
+                                    </span>
+                                  </div>
+
+                                  {reference ? (
+                                    <a
+                                      className="reference-link"
+                                      href={
+                                        reference
+                                          .sourceUrl
+                                      }
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      Open ↗
+                                    </a>
+                                  ) : null}
+                                </li>
+                              );
+                            },
+                          )}
+                        </ul>
+                      )}
+                    </div>
+
+                    {entry.version.note ? (
+                      <p className="history-note">
+                        {
+                          entry
+                            .version
+                            .note
+                        }
+                      </p>
+                    ) : null}
+
+                    {entry.resolution ? (
+                      <div className="agreement-resolution-record">
+                        <span className="summary-label">
+                          Resolution evidence
+                        </span>
+
+                        <strong>
+                          {
+                            entry
+                              .resolution
+                              .outcome
+                          }
+                        </strong>
+
+                        {entry.resolution
+                          .clientNameSnapshot ? (
+                          <span>
+                            Client:{" "}
+                            {
+                              entry
+                                .resolution
+                                .clientNameSnapshot
+                            }
+                          </span>
+                        ) : null}
+
+                        {entry.resolution
+                          .clientDecisionChannel ? (
+                          <span>
+                            Channel:{" "}
+                            {
+                              entry
+                                .resolution
+                                .clientDecisionChannel
+                            }
+                          </span>
+                        ) : null}
+
+                        <p className="history-note">
+                          {
+                            entry
+                              .resolution
+                              .evidenceNote
+                          }
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="workspace-note">
+                        This revision is
+                        pending a terminal
+                        decision.
+                      </p>
+                    )}
+                  </article>
+                );
+              },
+            )}
+          </div>
+        )}
+      </section>
+
+      {canResolveLatestAgreement &&
+      latestAgreementEntry ? (
+        <RecordAgreementResolutionForm
+          businessId={
+            parsedParams.data.businessId
+          }
+          garmentId={
+            record.garment.id
+          }
+          agreementVersionId={
+            latestAgreementEntry
+              .version.id
+          }
+          revisionNumber={
+            latestAgreementEntry
+              .version
+              .revisionNumber
+          }
+        />
+      ) : null}
+
+      {latestAgreementOutcome ===
+      "APPROVED" ? (
+        <div className="workflow-complete">
+          <div>
+            <p className="eyebrow">
+              Approved baseline
+            </p>
+
+            <h3>
+              Initial agreement approved
+            </h3>
+
+            <p className="workspace-note">
+              This approved revision is
+              now the locked baseline.
+              Post-approval change control
+              belongs to the next product
+              milestone.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {canCreateAgreementVersion ? (
+        <CreateAgreementVersionForm
+          businessId={
+            parsedParams.data.businessId
+          }
+          garmentId={
+            record.garment.id
+          }
+          garmentName={
+            record.garment.name
+          }
+          measurementVersions={
+            record.measurementVersions.map(
+              (version) => ({
+                id:
+                  version.id,
+                measuredAt:
+                  version.measuredAt
+                    .toISOString(),
+                unit:
+                  version.unit,
+              }),
+            )
+          }
+          styleReferences={
+            record.styleReferences.map(
+              (reference) => ({
+                id:
+                  reference.id,
+                label:
+                  reference.label,
+                sourceUrl:
+                  reference.sourceUrl,
+              }),
+            )
+          }
+        />
+      ) : null}
     </section>
   );
 }
