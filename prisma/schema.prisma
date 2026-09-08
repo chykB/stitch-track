@@ -25,6 +25,20 @@ enum MeasurementUnit {
   INCH
 }
 
+enum AgreementResolutionOutcome {
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ClientDecisionChannel {
+  WHATSAPP
+  EMAIL
+  PHONE
+  IN_PERSON
+  OTHER
+}
+
 model User {
   id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                String
@@ -102,7 +116,10 @@ model Business {
   garments            Garment[]
   measurementVersions MeasurementVersion[]
   measurementEntries  MeasurementEntry[]
-  styleReferences     StyleReference[]
+  styleReferences          StyleReference[]
+  agreementVersions          AgreementVersion[]
+  agreementStyleReferences   AgreementStyleReference[]
+  agreementResolutions       AgreementResolution[]
 
   @@map("business")
 }
@@ -120,7 +137,10 @@ model BusinessMember {
 
   user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
+  agreementResolutions AgreementResolution[]
+
   @@unique([businessId, userId], map: "business_member_businessId_userId_uidx")
+  @@unique([id, businessId], map: "business_member_id_businessId_uidx")
   @@index([userId])
   @@map("business_member")
 }
@@ -138,6 +158,7 @@ model Client {
 
   orders              Order[]
   measurementVersions MeasurementVersion[]
+  agreementVersions   AgreementVersion[]
 
   @@unique([id, businessId], map: "client_id_businessId_uidx")
   @@index([businessId])
@@ -155,9 +176,11 @@ model Order {
 
   client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict)
 
-  garments Garment[]
+  garments          Garment[]
+  agreementVersions AgreementVersion[]
 
   @@unique([id, businessId], map: "order_id_businessId_uidx")
+  @@unique([id, businessId, clientId], map: "order_id_business_client_uidx")
   @@index([businessId])
   @@index([businessId, clientId])
   @@map("order")
@@ -175,9 +198,12 @@ model Garment {
 
   order Order @relation(fields: [orderId, businessId], references: [id, businessId], onDelete: Restrict)
 
-  styleReferences StyleReference[]
+  styleReferences          StyleReference[]
+  agreementVersions          AgreementVersion[]
+  agreementStyleReferences   AgreementStyleReference[]
 
   @@unique([id, businessId], map: "garment_id_businessId_uidx")
+  @@unique([id, businessId, orderId], map: "garment_id_business_order_uidx")
   @@index([businessId])
   @@index([businessId, orderId])
   @@map("garment")
@@ -196,9 +222,11 @@ model MeasurementVersion {
 
   client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict)
 
-  entries MeasurementEntry[]
+  entries           MeasurementEntry[]
+  agreementVersions AgreementVersion[]
 
   @@unique([id, businessId], map: "measurement_version_id_businessId_uidx")
+  @@unique([id, businessId, clientId], map: "measurement_version_id_business_client_uidx")
   @@index([businessId])
   @@index([businessId, clientId, measuredAt])
   @@map("measurement_version")
@@ -236,7 +264,100 @@ model StyleReference {
 
   garment Garment @relation(fields: [garmentId, businessId], references: [id, businessId], onDelete: Restrict)
 
+  agreementStyleReferences AgreementStyleReference[]
+
+  @@unique([id, businessId, garmentId], map: "style_reference_id_business_garment_uidx")
   @@index([businessId])
   @@index([businessId, garmentId])
   @@map("style_reference")
+}
+
+model AgreementVersion {
+  id                           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId                   String   @db.Uuid
+  clientId                     String   @db.Uuid
+  orderId                      String   @db.Uuid
+  garmentId                    String   @db.Uuid
+  revisionNumber               Int
+  measurementVersionId         String?  @db.Uuid
+  designSummary                String
+  fabricDescription            String?
+  quantity                     Int
+  priceAmount                  Decimal  @db.Decimal(19, 4)
+  currency                     String
+  deliveryDate                 DateTime @db.Date
+  note                         String?
+  supersedesAgreementVersionId String?  @db.Uuid
+  createdAt                    DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "agreement_version_business_fkey")
+
+  client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict, map: "agreement_version_client_chain_fkey")
+
+  order Order @relation(fields: [orderId, businessId, clientId], references: [id, businessId, clientId], onDelete: Restrict, map: "agreement_version_order_chain_fkey")
+
+  garment Garment @relation(fields: [garmentId, businessId, orderId], references: [id, businessId, orderId], onDelete: Restrict, map: "agreement_version_garment_chain_fkey")
+
+  measurementVersion MeasurementVersion? @relation(fields: [measurementVersionId, businessId, clientId], references: [id, businessId, clientId], onDelete: Restrict, map: "agreement_version_measurement_chain_fkey")
+
+  supersedesAgreementVersion AgreementVersion? @relation("AgreementVersionSupersession", fields: [supersedesAgreementVersionId, businessId, garmentId], references: [id, businessId, garmentId], onDelete: Restrict, map: "agreement_version_supersedes_fkey")
+
+  supersededBy AgreementVersion[] @relation("AgreementVersionSupersession")
+
+  styleReferences AgreementStyleReference[]
+  resolution      AgreementResolution?
+
+  @@unique([id, businessId], map: "agreement_version_id_business_uidx")
+  @@unique([id, businessId, garmentId], map: "agreement_version_id_business_garment_uidx")
+  @@unique([businessId, garmentId, revisionNumber], map: "agreement_version_business_garment_revision_uidx")
+  @@index([businessId])
+  @@index([businessId, clientId])
+  @@index([businessId, orderId])
+  @@map("agreement_version")
+}
+
+model AgreementStyleReference {
+  businessId         String   @db.Uuid
+  agreementVersionId String   @db.Uuid
+  styleReferenceId   String   @db.Uuid
+  garmentId          String   @db.Uuid
+  createdAt          DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "agreement_style_reference_business_fkey")
+
+  agreementVersion AgreementVersion @relation(fields: [agreementVersionId, businessId, garmentId], references: [id, businessId, garmentId], onDelete: Restrict, map: "agreement_style_reference_version_fkey")
+
+  styleReference StyleReference @relation(fields: [styleReferenceId, businessId, garmentId], references: [id, businessId, garmentId], onDelete: Restrict, map: "agreement_style_reference_style_fkey")
+
+  garment Garment @relation(fields: [garmentId, businessId], references: [id, businessId], onDelete: Restrict, map: "agreement_style_reference_garment_fkey")
+
+  @@id([agreementVersionId, styleReferenceId])
+  @@index([businessId])
+  @@index([businessId, garmentId])
+  @@index([businessId, agreementVersionId])
+  @@map("agreement_style_reference")
+}
+
+model AgreementResolution {
+  id                     String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId             String                     @db.Uuid
+  agreementVersionId     String                     @db.Uuid
+  outcome                AgreementResolutionOutcome
+  occurredAt             DateTime
+  clientNameSnapshot     String?
+  clientDecisionChannel  ClientDecisionChannel?
+  evidenceNote           String
+  recordedByMembershipId String                     @db.Uuid
+  createdAt              DateTime                   @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "agreement_resolution_business_fkey")
+
+  agreementVersion AgreementVersion @relation(fields: [agreementVersionId, businessId], references: [id, businessId], onDelete: Restrict, map: "agreement_resolution_version_fkey")
+
+  recordedByMembership BusinessMember @relation(fields: [recordedByMembershipId, businessId], references: [id, businessId], onDelete: Restrict, map: "agreement_resolution_membership_fkey")
+
+  @@unique([agreementVersionId, businessId], map: "agreement_resolution_version_business_uidx")
+  @@index([businessId])
+  @@index([businessId, recordedByMembershipId])
+  @@map("agreement_resolution")
 }
