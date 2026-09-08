@@ -20,6 +20,11 @@ enum BusinessMemberStatus {
   SUSPENDED
 }
 
+enum MeasurementUnit {
+  CENTIMETER
+  INCH
+}
+
 model User {
   id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                String
@@ -92,9 +97,12 @@ model Business {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   members   BusinessMember[]
-  clients   Client[]
-  orders    Order[]
-  garments  Garment[]
+  clients             Client[]
+  orders              Order[]
+  garments            Garment[]
+  measurementVersions MeasurementVersion[]
+  measurementEntries  MeasurementEntry[]
+  styleReferences     StyleReference[]
 
   @@map("business")
 }
@@ -128,7 +136,8 @@ model Client {
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
 
-  orders Order[]
+  orders              Order[]
+  measurementVersions MeasurementVersion[]
 
   @@unique([id, businessId], map: "client_id_businessId_uidx")
   @@index([businessId])
@@ -166,7 +175,68 @@ model Garment {
 
   order Order @relation(fields: [orderId, businessId], references: [id, businessId], onDelete: Restrict)
 
+  styleReferences StyleReference[]
+
+  @@unique([id, businessId], map: "garment_id_businessId_uidx")
   @@index([businessId])
   @@index([businessId, orderId])
   @@map("garment")
+}
+
+model MeasurementVersion {
+  id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId String          @db.Uuid
+  clientId   String          @db.Uuid
+  measuredAt DateTime
+  unit       MeasurementUnit
+  note       String?
+  createdAt  DateTime        @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict)
+
+  entries MeasurementEntry[]
+
+  @@unique([id, businessId], map: "measurement_version_id_businessId_uidx")
+  @@index([businessId])
+  @@index([businessId, clientId, measuredAt])
+  @@map("measurement_version")
+}
+
+model MeasurementEntry {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId           String   @db.Uuid
+  measurementVersionId String   @db.Uuid
+  label                String
+  normalizedKey        String
+  value                Decimal
+  createdAt            DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  measurementVersion MeasurementVersion @relation(fields: [measurementVersionId, businessId], references: [id, businessId], onDelete: Restrict)
+
+  @@unique([measurementVersionId, normalizedKey], map: "measurement_entry_version_normalizedKey_uidx")
+  @@index([businessId])
+  @@index([businessId, measurementVersionId])
+  @@map("measurement_entry")
+}
+
+model StyleReference {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId String   @db.Uuid
+  garmentId  String   @db.Uuid
+  sourceUrl  String
+  label      String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  garment Garment @relation(fields: [garmentId, businessId], references: [id, businessId], onDelete: Restrict)
+
+  @@index([businessId])
+  @@index([businessId, garmentId])
+  @@map("style_reference")
 }

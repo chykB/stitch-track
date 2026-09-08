@@ -141,6 +141,38 @@ describe("measurement domain", () => {
     },
   );
 
+  it("accepts the maximum supported decimal precision", () => {
+    const value =
+      "12345678901234567890123456789012345." +
+      "123456789012345678901234567891";
+
+    expect(
+      normalizeMeasurementValue(
+        value,
+      ),
+    ).toBe(value);
+  });
+
+  it("rejects more than 35 integer digits", () => {
+    expect(() =>
+      normalizeMeasurementValue(
+        "123456789012345678901234567890123456",
+      ),
+    ).toThrow(
+      "Measurement value exceeds supported precision.",
+    );
+  });
+
+  it("rejects more than 30 fractional digits", () => {
+    expect(() =>
+      normalizeMeasurementValue(
+        "1.1234567890123456789012345678901",
+      ),
+    ).toThrow(
+      "Measurement value exceeds supported precision.",
+    );
+  });
+
   it("rejects an empty label", () => {
     expect(() =>
       normalizeMeasurementEntry({

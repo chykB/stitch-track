@@ -105,6 +105,15 @@ export function normalizeMeasurementValue(
       "",
     );
 
+  if (
+    normalizedWhole.length > 35 ||
+    (normalizedFraction?.length ?? 0) > 30
+  ) {
+    throw new Error(
+      "Measurement value exceeds supported precision.",
+    );
+  }
+
   const normalizedValue =
     normalizedFraction
       ? `${normalizedWhole}.${normalizedFraction}`
