@@ -1,4 +1,14 @@
 import {
+  listAgreementHistoryForTenant,
+  type AgreementHistoryEntry,
+} from "../../agreement/application/use-cases/list-agreement-history";
+import {
+  prismaAgreementResolutionRepository,
+} from "../../agreement/infrastructure/prisma-agreement-resolution-repository";
+import {
+  prismaAgreementVersionRepository,
+} from "../../agreement/infrastructure/prisma-agreement-version-repository";
+import {
   getClientForTenant,
 } from "../../client/application/use-cases/get-client";
 import type {
@@ -56,6 +66,8 @@ export type GarmentRecord =
       readonly MeasurementVersion[];
     styleReferences:
       readonly StyleReference[];
+    agreementHistory:
+      readonly AgreementHistoryEntry[];
   }>;
 
 export async function getGarmentRecordForCurrentTenant(
@@ -103,6 +115,7 @@ export async function getGarmentRecordForCurrentTenant(
   const [
     measurementVersions,
     styleReferences,
+    agreementHistory,
   ] = await Promise.all([
     listMeasurementVersionsForTenant(
       prismaClientRepository,
@@ -123,6 +136,17 @@ export async function getGarmentRecordForCurrentTenant(
           garment.id,
       },
     ),
+
+    listAgreementHistoryForTenant(
+      prismaGarmentRepository,
+      prismaAgreementVersionRepository,
+      prismaAgreementResolutionRepository,
+      tenantContext,
+      {
+        garmentId:
+          garment.id,
+      },
+    ),
   ]);
 
   return {
@@ -131,5 +155,6 @@ export async function getGarmentRecordForCurrentTenant(
     garment,
     measurementVersions,
     styleReferences,
+    agreementHistory,
   };
 }
