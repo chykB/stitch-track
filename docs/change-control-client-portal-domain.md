@@ -663,6 +663,35 @@ The generated AgreementResolution occurredAt:
 This preserves the V0.5 AgreementResolution temporal invariant while retaining
 the original decision time in ChangeProposalDecision.
 
+### Generated resolution recorder provenance
+
+V0.5 AgreementResolution requires recordedByMembershipId.
+
+V0.6 preserves that non-null audit invariant.
+
+For BUSINESS_RECORDED approval:
+
+- recordedByMembershipId is the authenticated TenantContext membership that
+  recorded the client decision
+
+For CLIENT_PORTAL approval:
+
+- ChangeProposalDecision recordedByMembershipId remains null
+- ChangeProposalDecision portalGrantId identifies the consumed portal grant
+- the generated AgreementResolution recordedByMembershipId is derived from
+  ClientPortalGrant.createdByMembershipId
+
+The portal browser must never submit or select this membership identifier.
+
+Using the portal grant creator as AgreementResolution recorder provenance does
+not mean that Business member made the client's decision.
+
+The client decision source remains CLIENT_PORTAL and is preserved by the
+ChangeProposalDecision and portal evidence.
+
+The membership identifies the Business member who issued the capability under
+which StitchTrack later applied the approved change.
+
 For CLIENT_PORTAL approval:
 
 - clientNameSnapshot comes from the Client
