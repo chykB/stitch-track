@@ -391,6 +391,9 @@ function dependencies(
       createChangeRequestClosure:
         vi.fn(),
 
+      releaseActiveChangeRequest:
+        vi.fn(),
+
     };
 
   const lifecycleRepository = {
@@ -509,6 +512,13 @@ describe(
           recordedByMembershipId:
             "membership-1",
         });
+
+        expect(
+          deps.session
+            .releaseActiveChangeRequest,
+        ).toHaveBeenCalledWith(
+          "change-request-1",
+        );
       },
     );
 

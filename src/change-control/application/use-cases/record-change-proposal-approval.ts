@@ -417,6 +417,11 @@ export async function recordChangeProposalApprovalForTenant(
                 ...agreementResolutionDetails,
               });
 
+          await session
+            .releaseActiveChangeRequest(
+              activeRequest.id,
+            );
+
           deriveChangeRequestState(
             latestProposal,
             decision,

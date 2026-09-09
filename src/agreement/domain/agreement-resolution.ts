@@ -8,7 +8,8 @@ export type ClientDecisionChannel =
   | "EMAIL"
   | "PHONE"
   | "IN_PERSON"
-  | "OTHER";
+  | "OTHER"
+  | "PORTAL";
 
 export type AgreementResolutionDetails =
   Readonly<{

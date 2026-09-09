@@ -152,6 +152,10 @@ export interface ChangeControlLifecycleSession {
     data:
       CreateChangeRequestClosureData,
   ): Promise<ChangeRequestClosure>;
+
+  releaseActiveChangeRequest(
+    changeRequestId: string,
+  ): Promise<void>;
 }
 
 export interface ChangeControlLifecycleRepository {

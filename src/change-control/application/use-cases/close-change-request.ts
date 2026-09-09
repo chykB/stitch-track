@@ -209,16 +209,24 @@ export async function closeChangeRequestForTenant(
                 new Date(),
             });
 
-          return session
-            .createChangeRequestClosure({
-              businessId:
-                tenantContext.businessId,
-              changeRequestId:
-                activeRequest.id,
-              recordedByMembershipId:
-                tenantContext.membershipId,
-              ...details,
-            });
+          const closure =
+            await session
+              .createChangeRequestClosure({
+                businessId:
+                  tenantContext.businessId,
+                changeRequestId:
+                  activeRequest.id,
+                recordedByMembershipId:
+                  tenantContext.membershipId,
+                ...details,
+              });
+
+          await session
+            .releaseActiveChangeRequest(
+              activeRequest.id,
+            );
+
+          return closure;
         } catch (error) {
           return toConflict(
             error,

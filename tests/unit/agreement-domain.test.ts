@@ -263,6 +263,32 @@ describe(
         "2026-09-08T12:00:00.000Z",
       );
 
+    it(
+      "reserves PORTAL for the controlled portal workflow",
+      () => {
+        expect(() =>
+          normalizeAgreementResolutionDetails({
+            outcome:
+              "APPROVED",
+            occurredAt:
+              new Date(
+                "2026-09-08T11:00:00.000Z",
+              ),
+            clientNameSnapshot:
+              "Ada Okafor",
+            clientDecisionChannel:
+              "PORTAL",
+            evidenceNote:
+              "Portal approval.",
+            agreementCreatedAt,
+            now,
+          }),
+        ).toThrow(
+          "Client decision channel is invalid.",
+        );
+      },
+    );
+
     it.each([
       "APPROVED",
       "REJECTED",

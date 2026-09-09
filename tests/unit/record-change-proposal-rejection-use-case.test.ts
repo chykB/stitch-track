@@ -365,6 +365,9 @@ function dependencies(
       createChangeRequestClosure:
         vi.fn(),
 
+      releaseActiveChangeRequest:
+        vi.fn(),
+
     };
 
   const lifecycleRepository = {
