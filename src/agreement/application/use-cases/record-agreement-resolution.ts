@@ -148,6 +148,23 @@ export async function recordAgreementResolutionForTenant(
           request.outcome ===
           "WITHDRAWN";
 
+        const requestedChannel =
+          request.clientDecisionChannel
+            ?.trim()
+            .toUpperCase() ??
+          null;
+
+        if (
+          !isWithdrawal &&
+          requestedChannel ===
+            "PORTAL"
+        ) {
+          throw new ApplicationError(
+            "CONFLICT",
+            "PORTAL is reserved for the controlled client portal workflow.",
+          );
+        }
+
         const details =
           normalizeAgreementResolutionDetails({
             outcome:

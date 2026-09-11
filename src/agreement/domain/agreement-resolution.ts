@@ -8,7 +8,8 @@ export type ClientDecisionChannel =
   | "EMAIL"
   | "PHONE"
   | "IN_PERSON"
-  | "OTHER";
+  | "OTHER"
+  | "PORTAL";
 
 export type AgreementResolutionDetails =
   Readonly<{
@@ -80,7 +81,8 @@ function normalizeClientDecisionChannel(
     channel !== "EMAIL" &&
     channel !== "PHONE" &&
     channel !== "IN_PERSON" &&
-    channel !== "OTHER"
+    channel !== "OTHER" &&
+    channel !== "PORTAL"
   ) {
     throw new Error(
       "Client decision channel is invalid.",

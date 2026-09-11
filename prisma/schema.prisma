@@ -37,6 +37,37 @@ enum ClientDecisionChannel {
   PHONE
   IN_PERSON
   OTHER
+  PORTAL
+}
+
+enum ChangeRequestedBy {
+  CLIENT
+  BUSINESS
+}
+
+enum ChangeRequestOrigin {
+  BUSINESS_RECORDED
+  CLIENT_PORTAL
+}
+
+enum ChangeProposalDecisionOutcome {
+  APPROVED
+  REJECTED
+}
+
+enum ChangeProposalDecisionSource {
+  BUSINESS_RECORDED
+  CLIENT_PORTAL
+}
+
+enum ChangeRequestClosureOutcome {
+  WITHDRAWN
+  IMPOSSIBLE
+}
+
+enum ClientPortalGrantPurpose {
+  REQUEST_CHANGE
+  DECIDE_CHANGE_PROPOSAL
 }
 
 model User {
@@ -106,20 +137,26 @@ model Verification {
 }
 
 model Business {
-  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  members   BusinessMember[]
-  clients             Client[]
-  orders              Order[]
-  garments            Garment[]
-  measurementVersions MeasurementVersion[]
-  measurementEntries  MeasurementEntry[]
-  styleReferences          StyleReference[]
-  agreementVersions          AgreementVersion[]
-  agreementStyleReferences   AgreementStyleReference[]
-  agreementResolutions       AgreementResolution[]
+  id                            String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                          String
+  createdAt                     DateTime                       @default(now())
+  updatedAt                     DateTime                       @updatedAt
+  members                       BusinessMember[]
+  clients                       Client[]
+  orders                        Order[]
+  garments                      Garment[]
+  measurementVersions           MeasurementVersion[]
+  measurementEntries            MeasurementEntry[]
+  styleReferences               StyleReference[]
+  agreementVersions             AgreementVersion[]
+  agreementStyleReferences      AgreementStyleReference[]
+  agreementResolutions          AgreementResolution[]
+  changeRequests                ChangeRequest[]
+  changeProposalVersions        ChangeProposalVersion[]
+  changeProposalStyleReferences ChangeProposalStyleReference[]
+  changeProposalDecisions       ChangeProposalDecision[]
+  changeRequestClosures         ChangeRequestClosure[]
+  clientPortalGrants            ClientPortalGrant[]
 
   @@map("business")
 }
@@ -137,7 +174,12 @@ model BusinessMember {
 
   user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
-  agreementResolutions AgreementResolution[]
+  agreementResolutions            AgreementResolution[]
+  recordedChangeRequests          ChangeRequest[]          @relation("ChangeRequestRecorder")
+  createdChangeProposalVersions   ChangeProposalVersion[]  @relation("ChangeProposalVersionCreator")
+  recordedChangeProposalDecisions ChangeProposalDecision[] @relation("ChangeProposalDecisionRecorder")
+  recordedChangeRequestClosures   ChangeRequestClosure[]   @relation("ChangeRequestClosureRecorder")
+  createdClientPortalGrants       ClientPortalGrant[]      @relation("ClientPortalGrantCreator")
 
   @@unique([businessId, userId], map: "business_member_businessId_userId_uidx")
   @@unique([id, businessId], map: "business_member_id_businessId_uidx")
@@ -156,9 +198,12 @@ model Client {
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
 
-  orders              Order[]
-  measurementVersions MeasurementVersion[]
-  agreementVersions   AgreementVersion[]
+  orders                 Order[]
+  measurementVersions    MeasurementVersion[]
+  agreementVersions      AgreementVersion[]
+  changeRequests         ChangeRequest[]
+  changeProposalVersions ChangeProposalVersion[]
+  clientPortalGrants     ClientPortalGrant[]
 
   @@unique([id, businessId], map: "client_id_businessId_uidx")
   @@index([businessId])
@@ -176,8 +221,11 @@ model Order {
 
   client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict)
 
-  garments          Garment[]
-  agreementVersions AgreementVersion[]
+  garments               Garment[]
+  agreementVersions      AgreementVersion[]
+  changeRequests         ChangeRequest[]
+  changeProposalVersions ChangeProposalVersion[]
+  clientPortalGrants     ClientPortalGrant[]
 
   @@unique([id, businessId], map: "order_id_businessId_uidx")
   @@unique([id, businessId, clientId], map: "order_id_business_client_uidx")
@@ -198,9 +246,13 @@ model Garment {
 
   order Order @relation(fields: [orderId, businessId], references: [id, businessId], onDelete: Restrict)
 
-  styleReferences          StyleReference[]
-  agreementVersions          AgreementVersion[]
-  agreementStyleReferences   AgreementStyleReference[]
+  styleReferences               StyleReference[]
+  agreementVersions             AgreementVersion[]
+  agreementStyleReferences      AgreementStyleReference[]
+  changeRequests                ChangeRequest[]
+  changeProposalVersions        ChangeProposalVersion[]
+  changeProposalStyleReferences ChangeProposalStyleReference[]
+  clientPortalGrants            ClientPortalGrant[]
 
   @@unique([id, businessId], map: "garment_id_businessId_uidx")
   @@unique([id, businessId, orderId], map: "garment_id_business_order_uidx")
@@ -222,8 +274,9 @@ model MeasurementVersion {
 
   client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict)
 
-  entries           MeasurementEntry[]
-  agreementVersions AgreementVersion[]
+  entries                MeasurementEntry[]
+  agreementVersions      AgreementVersion[]
+  changeProposalVersions ChangeProposalVersion[]
 
   @@unique([id, businessId], map: "measurement_version_id_businessId_uidx")
   @@unique([id, businessId, clientId], map: "measurement_version_id_business_client_uidx")
@@ -264,7 +317,8 @@ model StyleReference {
 
   garment Garment @relation(fields: [garmentId, businessId], references: [id, businessId], onDelete: Restrict)
 
-  agreementStyleReferences AgreementStyleReference[]
+  agreementStyleReferences      AgreementStyleReference[]
+  changeProposalStyleReferences ChangeProposalStyleReference[]
 
   @@unique([id, businessId, garmentId], map: "style_reference_id_business_garment_uidx")
   @@index([businessId])
@@ -304,8 +358,10 @@ model AgreementVersion {
 
   supersededBy AgreementVersion[] @relation("AgreementVersionSupersession")
 
-  styleReferences AgreementStyleReference[]
-  resolution      AgreementResolution?
+  styleReferences                   AgreementStyleReference[]
+  resolution                        AgreementResolution?
+  baselineForChangeRequests         ChangeRequest[]
+  baselineForChangeProposalVersions ChangeProposalVersion[]
 
   @@unique([id, businessId], map: "agreement_version_id_business_uidx")
   @@unique([id, businessId, garmentId], map: "agreement_version_id_business_garment_uidx")
@@ -360,4 +416,216 @@ model AgreementResolution {
   @@index([businessId])
   @@index([businessId, recordedByMembershipId])
   @@map("agreement_resolution")
+}
+
+model ChangeRequest {
+  id                         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId                 String                 @db.Uuid
+  clientId                   String                 @db.Uuid
+  orderId                    String                 @db.Uuid
+  garmentId                  String                 @db.Uuid
+  baselineAgreementVersionId String                 @db.Uuid
+  requestedBy                ChangeRequestedBy
+  origin                     ChangeRequestOrigin
+  requestChannel             ClientDecisionChannel?
+  description                String
+  requestedAt                DateTime
+  recordedByMembershipId     String?                @db.Uuid
+  activeSlot                 String?                @default("ACTIVE")
+  createdAt                  DateTime               @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "change_request_business_fkey")
+
+  client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_request_client_chain_fkey")
+
+  order Order @relation(fields: [orderId, businessId, clientId], references: [id, businessId, clientId], onDelete: Restrict, map: "change_request_order_chain_fkey")
+
+  garment Garment @relation(fields: [garmentId, businessId, orderId], references: [id, businessId, orderId], onDelete: Restrict, map: "change_request_garment_chain_fkey")
+
+  baselineAgreementVersion AgreementVersion @relation(fields: [baselineAgreementVersionId, businessId, garmentId], references: [id, businessId, garmentId], onDelete: Restrict, map: "change_request_baseline_fkey")
+
+  recordedByMembership BusinessMember? @relation("ChangeRequestRecorder", fields: [recordedByMembershipId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_request_recorder_fkey")
+
+  proposalVersions ChangeProposalVersion[]
+  closure          ChangeRequestClosure?
+
+  @@unique([id, businessId], map: "change_request_id_business_uidx")
+  @@unique([id, businessId, garmentId], map: "change_request_id_business_garment_uidx")
+  @@unique([id, businessId, clientId, orderId, garmentId, baselineAgreementVersionId], map: "change_request_full_chain_uidx")
+  @@unique([businessId, garmentId, activeSlot], map: "change_request_active_slot_uidx")
+  @@index([businessId])
+  @@index([businessId, clientId])
+  @@index([businessId, orderId])
+  @@index([businessId, garmentId, requestedAt])
+  @@map("change_request")
+}
+
+model ChangeProposalVersion {
+  id                                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId                        String   @db.Uuid
+  changeRequestId                   String   @db.Uuid
+  clientId                          String   @db.Uuid
+  orderId                           String   @db.Uuid
+  garmentId                         String   @db.Uuid
+  baselineAgreementVersionId        String   @db.Uuid
+  revisionNumber                    Int
+  supersedesChangeProposalVersionId String?  @db.Uuid
+  measurementVersionId              String?  @db.Uuid
+  designSummary                     String
+  fabricDescription                 String?
+  quantity                          Int
+  priceAmount                       Decimal  @db.Decimal(19, 4)
+  currency                          String
+  deliveryDate                      DateTime @db.Date
+  note                              String?
+  rationale                         String
+  createdByMembershipId             String   @db.Uuid
+  createdAt                         DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "change_proposal_version_business_fkey")
+
+  changeRequest ChangeRequest @relation(fields: [changeRequestId, businessId, clientId, orderId, garmentId, baselineAgreementVersionId], references: [id, businessId, clientId, orderId, garmentId, baselineAgreementVersionId], onDelete: Restrict, map: "change_proposal_version_request_fkey")
+
+  client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_proposal_version_client_fkey")
+
+  order Order @relation(fields: [orderId, businessId, clientId], references: [id, businessId, clientId], onDelete: Restrict, map: "change_proposal_version_order_fkey")
+
+  garment Garment @relation(fields: [garmentId, businessId, orderId], references: [id, businessId, orderId], onDelete: Restrict, map: "change_proposal_version_garment_fkey")
+
+  baselineAgreementVersion AgreementVersion @relation(fields: [baselineAgreementVersionId, businessId, garmentId], references: [id, businessId, garmentId], onDelete: Restrict, map: "change_proposal_version_baseline_fkey")
+
+  measurementVersion MeasurementVersion? @relation(fields: [measurementVersionId, businessId, clientId], references: [id, businessId, clientId], onDelete: Restrict, map: "change_proposal_version_measurement_fkey")
+
+  createdByMembership BusinessMember @relation("ChangeProposalVersionCreator", fields: [createdByMembershipId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_proposal_version_creator_fkey")
+
+  supersedesChangeProposalVersion ChangeProposalVersion? @relation("ChangeProposalVersionSupersession", fields: [supersedesChangeProposalVersionId, businessId, changeRequestId], references: [id, businessId, changeRequestId], onDelete: Restrict, map: "change_proposal_version_supersedes_fkey")
+
+  supersededBy ChangeProposalVersion[] @relation("ChangeProposalVersionSupersession")
+
+  styleReferences ChangeProposalStyleReference[]
+  decision        ChangeProposalDecision?
+  portalGrants    ClientPortalGrant[]
+
+  @@unique([id, businessId], map: "change_proposal_version_id_business_uidx")
+  @@unique([id, businessId, garmentId], map: "change_proposal_version_id_business_garment_uidx")
+  @@unique([id, businessId, changeRequestId], map: "change_proposal_version_id_business_request_uidx")
+  @@unique([id, businessId, clientId, orderId, garmentId], map: "change_proposal_version_grant_chain_uidx")
+  @@unique([businessId, changeRequestId, revisionNumber], map: "change_proposal_version_request_revision_uidx")
+  @@index([businessId])
+  @@index([businessId, garmentId])
+  @@index([businessId, changeRequestId])
+  @@index([businessId, clientId])
+  @@map("change_proposal_version")
+}
+
+model ChangeProposalStyleReference {
+  businessId              String   @db.Uuid
+  changeProposalVersionId String   @db.Uuid
+  styleReferenceId        String   @db.Uuid
+  garmentId               String   @db.Uuid
+  createdAt               DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "change_proposal_style_business_fkey")
+
+  changeProposalVersion ChangeProposalVersion @relation(fields: [changeProposalVersionId, businessId, garmentId], references: [id, businessId, garmentId], onDelete: Restrict, map: "change_proposal_style_proposal_fkey")
+
+  styleReference StyleReference @relation(fields: [styleReferenceId, businessId, garmentId], references: [id, businessId, garmentId], onDelete: Restrict, map: "change_proposal_style_reference_fkey")
+
+  garment Garment @relation(fields: [garmentId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_proposal_style_garment_fkey")
+
+  @@id([changeProposalVersionId, styleReferenceId])
+  @@index([businessId])
+  @@index([businessId, garmentId])
+  @@index([businessId, changeProposalVersionId])
+  @@map("change_proposal_style_reference")
+}
+
+model ChangeProposalDecision {
+  id                      String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId              String                        @db.Uuid
+  changeProposalVersionId String                        @db.Uuid
+  outcome                 ChangeProposalDecisionOutcome
+  occurredAt              DateTime
+  clientNameSnapshot      String
+  decisionSource          ChangeProposalDecisionSource
+  clientDecisionChannel   ClientDecisionChannel
+  evidenceNote            String
+  recordedByMembershipId  String?                       @db.Uuid
+  portalGrantId           String?                       @db.Uuid
+  createdAt               DateTime                      @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "change_proposal_decision_business_fkey")
+
+  changeProposalVersion ChangeProposalVersion @relation(fields: [changeProposalVersionId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_proposal_decision_proposal_fkey")
+
+  recordedByMembership BusinessMember? @relation("ChangeProposalDecisionRecorder", fields: [recordedByMembershipId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_proposal_decision_recorder_fkey")
+
+  portalGrant ClientPortalGrant? @relation("ChangeProposalDecisionPortalGrant", fields: [portalGrantId, businessId, changeProposalVersionId], references: [id, businessId, changeProposalVersionId], onDelete: Restrict, map: "change_proposal_decision_grant_fkey")
+
+  @@unique([changeProposalVersionId, businessId], map: "change_proposal_decision_proposal_business_uidx")
+  @@unique([portalGrantId, businessId], map: "change_proposal_decision_grant_business_uidx")
+  @@unique([portalGrantId, businessId, changeProposalVersionId], map: "change_proposal_decision_grant_proposal_uidx")
+  @@index([businessId])
+  @@index([businessId, recordedByMembershipId])
+  @@map("change_proposal_decision")
+}
+
+model ChangeRequestClosure {
+  id                     String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId             String                      @db.Uuid
+  changeRequestId        String                      @db.Uuid
+  outcome                ChangeRequestClosureOutcome
+  reason                 String
+  occurredAt             DateTime
+  recordedByMembershipId String                      @db.Uuid
+  createdAt              DateTime                    @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "change_request_closure_business_fkey")
+
+  changeRequest ChangeRequest @relation(fields: [changeRequestId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_request_closure_request_fkey")
+
+  recordedByMembership BusinessMember @relation("ChangeRequestClosureRecorder", fields: [recordedByMembershipId, businessId], references: [id, businessId], onDelete: Restrict, map: "change_request_closure_recorder_fkey")
+
+  @@unique([changeRequestId, businessId], map: "change_request_closure_request_business_uidx")
+  @@index([businessId])
+  @@index([businessId, recordedByMembershipId])
+  @@map("change_request_closure")
+}
+
+model ClientPortalGrant {
+  id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId              String                   @db.Uuid
+  clientId                String                   @db.Uuid
+  orderId                 String                   @db.Uuid
+  garmentId               String                   @db.Uuid
+  changeProposalVersionId String?                  @db.Uuid
+  purpose                 ClientPortalGrantPurpose
+  tokenHash               String                   @unique(map: "client_portal_grant_token_hash_uidx")
+  expiresAt               DateTime
+  consumedAt              DateTime?
+  revokedAt               DateTime?
+  createdByMembershipId   String                   @db.Uuid
+  createdAt               DateTime                 @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict, map: "client_portal_grant_business_fkey")
+
+  client Client @relation(fields: [clientId, businessId], references: [id, businessId], onDelete: Restrict, map: "client_portal_grant_client_fkey")
+
+  order Order @relation(fields: [orderId, businessId, clientId], references: [id, businessId, clientId], onDelete: Restrict, map: "client_portal_grant_order_fkey")
+
+  garment Garment @relation(fields: [garmentId, businessId, orderId], references: [id, businessId, orderId], onDelete: Restrict, map: "client_portal_grant_garment_fkey")
+
+  changeProposalVersion ChangeProposalVersion? @relation(fields: [changeProposalVersionId, businessId, clientId, orderId, garmentId], references: [id, businessId, clientId, orderId, garmentId], onDelete: Restrict, map: "client_portal_grant_proposal_fkey")
+
+  createdByMembership BusinessMember @relation("ClientPortalGrantCreator", fields: [createdByMembershipId, businessId], references: [id, businessId], onDelete: Restrict, map: "client_portal_grant_creator_fkey")
+
+  decision ChangeProposalDecision? @relation("ChangeProposalDecisionPortalGrant")
+
+  @@unique([id, businessId], map: "client_portal_grant_id_business_uidx")
+  @@unique([id, businessId, changeProposalVersionId], map: "client_portal_grant_decision_chain_uidx")
+  @@index([businessId])
+  @@index([businessId, clientId, orderId, garmentId, purpose])
+  @@index([businessId, changeProposalVersionId])
+  @@index([businessId, expiresAt])
+  @@map("client_portal_grant")
 }
