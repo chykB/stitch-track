@@ -24,8 +24,14 @@ import {
   RecordChangeProposalDecisionForm,
 } from "../../../../../change-control/presentation/record-change-proposal-decision-form";
 import {
+  ClientPortalGrantManager,
+} from "../../../../../change-control/presentation/client-portal-grant-manager";
+import {
   getChangeControlHistoryForCurrentTenant,
 } from "../../../../../change-control/composition/get-change-control-history";
+import {
+  listOutstandingClientPortalGrantsForCurrentTenant,
+} from "../../../../../change-control/composition/list-outstanding-client-portal-grants";
 import {
   getGarmentRecordForCurrentTenant,
 } from "../../../../../garment/composition/get-garment-record";
@@ -82,6 +88,7 @@ export default async function GarmentRecordPage({
 
   let record;
   let changeControlHistory;
+  let outstandingPortalGrants;
 
   try {
     record =
@@ -92,6 +99,15 @@ export default async function GarmentRecordPage({
 
     changeControlHistory =
       await getChangeControlHistoryForCurrentTenant(
+        parsedParams.data.businessId,
+        {
+          garmentId:
+            parsedParams.data.garmentId,
+        },
+      );
+
+    outstandingPortalGrants =
+      await listOutstandingClientPortalGrantsForCurrentTenant(
         parsedParams.data.businessId,
         {
           garmentId:
@@ -1312,6 +1328,55 @@ export default async function GarmentRecordPage({
           </div>
         </div>
       ) : null}
+
+      <ClientPortalGrantManager
+        businessId={
+          parsedParams.data.businessId
+        }
+        garmentId={
+          record.garment.id
+        }
+        canIssueRequestChange={
+          canCreateChangeRequest
+        }
+        decisionTarget={
+          canDecideChangeProposal &&
+          activeChangeRequestEntry &&
+          latestChangeProposalEntry
+            ? {
+                changeRequestId:
+                  activeChangeRequestEntry
+                    .request.id,
+                changeProposalVersionId:
+                  latestChangeProposalEntry
+                    .proposal.id,
+                proposalRevisionNumber:
+                  latestChangeProposalEntry
+                    .proposal
+                    .revisionNumber,
+              }
+            : null
+        }
+        outstandingGrants={
+          outstandingPortalGrants.map(
+            (grant) => ({
+              id:
+                grant.id,
+              purpose:
+                grant.purpose,
+              changeProposalVersionId:
+                grant
+                  .changeProposalVersionId,
+              expiresAt:
+                grant.expiresAt
+                  .toISOString(),
+              createdAt:
+                grant.createdAt
+                  .toISOString(),
+            }),
+          )
+        }
+      />
 
       {canCreateChangeRequest ? (
         <CreateChangeRequestForm
