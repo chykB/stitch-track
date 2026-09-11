@@ -534,5 +534,50 @@ describe(
         ).not.toHaveBeenCalled();
       },
     );
+
+    it(
+      "rejects PORTAL for the ordinary authenticated agreement-resolution workflow",
+      async () => {
+        const deps =
+          dependencies();
+
+        await expect(
+          recordAgreementResolutionForTenant(
+            deps.clientRepository,
+            deps.orderRepository,
+            deps.garmentRepository,
+            deps.agreementLifecycleRepository,
+            TENANT,
+            {
+              garmentId:
+                "garment-1",
+              agreementVersionId:
+                "agreement-1",
+              outcome:
+                "APPROVED",
+              occurredAt:
+                new Date(
+                  "2026-09-08T11:00:00.000Z",
+                ),
+              clientDecisionChannel:
+                "PORTAL",
+              evidenceNote:
+                "Cannot fabricate portal provenance.",
+            },
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "CONFLICT",
+          message:
+            "PORTAL is reserved for the controlled client portal workflow.",
+        });
+
+        expect(
+          deps.session
+            .createResolution,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
   },
 );

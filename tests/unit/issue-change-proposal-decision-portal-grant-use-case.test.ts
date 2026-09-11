@@ -17,9 +17,12 @@ import type {
   ChangeControlLifecycleRepository,
   ChangeControlLifecycleSession,
 } from "../../src/change-control/application/ports/change-control-lifecycle-repository";
+import type {
+  ClientPortalTokenService,
+} from "../../src/change-control/application/ports/client-portal-token-service";
 import {
-  recordChangeProposalRejectionForTenant,
-} from "../../src/change-control/application/use-cases/record-change-proposal-rejection";
+  issueChangeProposalDecisionPortalGrantForTenant,
+} from "../../src/change-control/application/use-cases/issue-change-proposal-decision-portal-grant";
 import type {
   ChangeProposalDecision,
 } from "../../src/change-control/domain/change-proposal-decision";
@@ -47,22 +50,36 @@ import type {
 
 const NOW =
   new Date(
-    "2026-09-09T15:00:00.000Z",
+    "2026-09-10T21:00:00.000Z",
+  );
+
+const EXPIRES_AT =
+  new Date(
+    "2026-09-11T21:00:00.000Z",
   );
 
 const TENANT: TenantContext = {
-  userId: "user-1",
-  businessId: "business-1",
-  membershipId: "membership-1",
-  role: "OWNER",
+  userId:
+    "user-1",
+  businessId:
+    "business-1",
+  membershipId:
+    "membership-1",
+  role:
+    "OWNER",
 };
 
 const CLIENT = {
-  id: "client-1",
-  businessId: "business-1",
-  name: "Ada Okafor",
-  phone: "08050000001",
-  email: null,
+  id:
+    "client-1",
+  businessId:
+    "business-1",
+  name:
+    "Ada Okafor",
+  phone:
+    "08050000001",
+  email:
+    null,
   createdAt:
     new Date(
       "2026-09-01T10:00:00.000Z",
@@ -70,9 +87,12 @@ const CLIENT = {
 };
 
 const ORDER = {
-  id: "order-1",
-  businessId: "business-1",
-  clientId: "client-1",
+  id:
+    "order-1",
+  businessId:
+    "business-1",
+  clientId:
+    "client-1",
   createdAt:
     new Date(
       "2026-09-01T10:01:00.000Z",
@@ -80,47 +100,70 @@ const ORDER = {
 };
 
 const GARMENT = {
-  id: "garment-1",
-  businessId: "business-1",
-  orderId: "order-1",
-  name: "Emerald Gown",
+  id:
+    "garment-1",
+  businessId:
+    "business-1",
+  orderId:
+    "order-1",
+  name:
+    "Emerald Gown",
   createdAt:
     new Date(
       "2026-09-01T10:02:00.000Z",
     ),
 };
 
-const AGREEMENT: AgreementVersion = {
-  id: "agreement-1",
-  businessId: "business-1",
-  clientId: "client-1",
-  orderId: "order-1",
-  garmentId: "garment-1",
-  revisionNumber: 1,
-  measurementVersionId: null,
-  designSummary: "Fitted gown",
-  fabricDescription: null,
-  quantity: 1,
-  priceAmount: "80000",
-  currency: "NGN",
-  deliveryDate: "2026-10-15",
-  note: null,
-  styleReferenceIds: [],
-  supersedesAgreementVersionId:
-    null,
-  createdAt:
-    new Date(
-      "2026-09-09T10:00:00.000Z",
-    ),
-};
+const AGREEMENT:
+  AgreementVersion = {
+    id:
+      "agreement-1",
+    businessId:
+      "business-1",
+    clientId:
+      "client-1",
+    orderId:
+      "order-1",
+    garmentId:
+      "garment-1",
+    revisionNumber:
+      1,
+    measurementVersionId:
+      null,
+    designSummary:
+      "Fitted gown",
+    fabricDescription:
+      null,
+    quantity:
+      1,
+    priceAmount:
+      "80000",
+    currency:
+      "NGN",
+    deliveryDate:
+      "2026-10-15",
+    note:
+      null,
+    styleReferenceIds:
+      [],
+    supersedesAgreementVersionId:
+      null,
+    createdAt:
+      new Date(
+        "2026-09-09T10:00:00.000Z",
+      ),
+  };
 
 const BASELINE_RESOLUTION:
   AgreementResolution = {
-    id: "resolution-1",
-    businessId: "business-1",
+    id:
+      "resolution-1",
+    businessId:
+      "business-1",
     agreementVersionId:
       "agreement-1",
-    outcome: "APPROVED",
+    outcome:
+      "APPROVED",
     occurredAt:
       new Date(
         "2026-09-09T11:00:00.000Z",
@@ -129,7 +172,8 @@ const BASELINE_RESOLUTION:
       "Ada Okafor",
     clientDecisionChannel:
       "WHATSAPP",
-    evidenceNote: "Approved.",
+    evidenceNote:
+      "Approved.",
     recordedByMembershipId:
       "membership-1",
     createdAt:
@@ -140,17 +184,26 @@ const BASELINE_RESOLUTION:
 
 const CHANGE_REQUEST:
   ChangeRequest = {
-    id: "change-request-1",
-    businessId: "business-1",
-    clientId: "client-1",
-    orderId: "order-1",
-    garmentId: "garment-1",
+    id:
+      "change-request-1",
+    businessId:
+      "business-1",
+    clientId:
+      "client-1",
+    orderId:
+      "order-1",
+    garmentId:
+      "garment-1",
     baselineAgreementVersionId:
       "agreement-1",
-    requestedBy: "CLIENT",
-    origin: "BUSINESS_RECORDED",
-    requestChannel: "WHATSAPP",
-    description: "Add sleeves",
+    requestedBy:
+      "CLIENT",
+    origin:
+      "BUSINESS_RECORDED",
+    requestChannel:
+      "WHATSAPP",
+    description:
+      "Add sleeves",
     requestedAt:
       new Date(
         "2026-09-09T12:00:00.000Z",
@@ -165,30 +218,43 @@ const CHANGE_REQUEST:
 
 const PROPOSAL:
   ChangeProposalVersion = {
-    id: "proposal-1",
-    businessId: "business-1",
+    id:
+      "proposal-1",
+    businessId:
+      "business-1",
     changeRequestId:
       "change-request-1",
-    clientId: "client-1",
-    orderId: "order-1",
-    garmentId: "garment-1",
+    clientId:
+      "client-1",
+    orderId:
+      "order-1",
+    garmentId:
+      "garment-1",
     baselineAgreementVersionId:
       "agreement-1",
-    revisionNumber: 1,
+    revisionNumber:
+      1,
     supersedesChangeProposalVersionId:
       null,
     measurementVersionId:
-      null,
+      "measurement-2",
     designSummary:
       "Long sleeve gown",
-    fabricDescription: null,
-    quantity: 1,
-    priceAmount: "90000",
-    currency: "NGN",
+    fabricDescription:
+      "Client supplied fabric",
+    quantity:
+      1,
+    priceAmount:
+      "90000",
+    currency:
+      "NGN",
     deliveryDate:
       "2026-10-20",
-    note: null,
-    styleReferenceIds: [],
+    note:
+      "Proposal note",
+    styleReferenceIds: [
+      "style-2",
+    ],
     rationale:
       "Sleeves affect price.",
     createdByMembershipId:
@@ -199,14 +265,16 @@ const PROPOSAL:
       ),
   };
 
-function existingDecision():
-  ChangeProposalDecision {
-  return {
-    id: "decision-existing",
-    businessId: "business-1",
+const EXISTING_DECISION:
+  ChangeProposalDecision = {
+    id:
+      "decision-1",
+    businessId:
+      "business-1",
     changeProposalVersionId:
       "proposal-1",
-    outcome: "REJECTED",
+    outcome:
+      "REJECTED",
     occurredAt:
       new Date(
         "2026-09-09T14:00:00.000Z",
@@ -221,23 +289,26 @@ function existingDecision():
       "Already rejected.",
     recordedByMembershipId:
       "membership-1",
-    portalGrantId: null,
+    portalGrantId:
+      null,
     createdAt:
       new Date(
         "2026-09-09T14:01:00.000Z",
       ),
   };
-}
 
-function closure():
-  ChangeRequestClosure {
-  return {
-    id: "closure-1",
-    businessId: "business-1",
+const CLOSURE:
+  ChangeRequestClosure = {
+    id:
+      "closure-1",
+    businessId:
+      "business-1",
     changeRequestId:
       "change-request-1",
-    outcome: "WITHDRAWN",
-    reason: "Cancelled.",
+    outcome:
+      "WITHDRAWN",
+    reason:
+      "Cancelled.",
     occurredAt:
       new Date(
         "2026-09-09T14:00:00.000Z",
@@ -249,14 +320,15 @@ function closure():
         "2026-09-09T14:01:00.000Z",
       ),
   };
-}
 
 function dependencies(
   options: {
-    activeRequest?:
-      ChangeRequest | null;
     latestAgreement?:
       AgreementVersion | null;
+    baselineResolution?:
+      AgreementResolution | null;
+    activeRequest?:
+      ChangeRequest | null;
     latestProposal?:
       ChangeProposalVersion | null;
     existingDecision?:
@@ -266,18 +338,18 @@ function dependencies(
   } = {},
 ) {
   const {
-    activeRequest =
-      CHANGE_REQUEST,
     latestAgreement =
       AGREEMENT,
+    baselineResolution =
+      BASELINE_RESOLUTION,
+    activeRequest =
+      CHANGE_REQUEST,
     latestProposal =
       PROPOSAL,
-    existingDecision:
-      currentDecision =
-        null,
-    closure:
-      currentClosure =
-        null,
+    existingDecision =
+      null,
+    closure =
+      null,
   } = options;
 
   const clientRepository = {
@@ -286,7 +358,8 @@ function dependencies(
         .mockResolvedValue(
           CLIENT,
         ),
-  } as unknown as ClientRepository;
+  } as unknown as
+    ClientRepository;
 
   const orderRepository = {
     findById:
@@ -294,7 +367,8 @@ function dependencies(
         .mockResolvedValue(
           ORDER,
         ),
-  } as unknown as OrderRepository;
+  } as unknown as
+    OrderRepository;
 
   const garmentRepository = {
     findById:
@@ -302,7 +376,8 @@ function dependencies(
         .mockResolvedValue(
           GARMENT,
         ),
-  } as unknown as GarmentRepository;
+  } as unknown as
+    GarmentRepository;
 
   const session:
     ChangeControlLifecycleSession = {
@@ -315,7 +390,7 @@ function dependencies(
       findAgreementResolutionForVersion:
         vi.fn()
           .mockResolvedValue(
-            BASELINE_RESOLUTION,
+            baselineResolution,
           ),
 
       findActiveChangeRequest:
@@ -333,14 +408,45 @@ function dependencies(
       findDecisionForProposal:
         vi.fn()
           .mockResolvedValue(
-            currentDecision,
+            existingDecision,
           ),
 
       findClosureForRequest:
         vi.fn()
           .mockResolvedValue(
-            currentClosure,
+            closure,
           ),
+
+      findClientPortalGrantById:
+        vi.fn(),
+
+      createClientPortalGrant:
+        vi.fn(
+          async (data) => ({
+            id:
+              "portal-grant-1",
+            consumedAt:
+              null,
+            revokedAt:
+              null,
+            ...data,
+          }),
+        ),
+
+      consumeClientPortalGrant:
+        vi.fn(),
+
+      revokeClientPortalGrant:
+        vi.fn(),
+
+      revokeOtherRequestChangeGrants:
+        vi.fn(),
+
+      revokeOtherDecisionGrantsForProposal:
+        vi.fn(),
+
+      revokeDecisionGrantsForRequest:
+        vi.fn(),
 
       createChangeRequest:
         vi.fn(),
@@ -349,13 +455,8 @@ function dependencies(
         vi.fn(),
 
       createChangeProposalDecision:
-        vi.fn(
-          async (data) => ({
-            id: "decision-new",
-            createdAt: NOW,
-            ...data,
-          }),
-        ),
+        vi.fn(),
+
       createAppliedAgreementVersion:
         vi.fn(),
 
@@ -365,25 +466,8 @@ function dependencies(
       createChangeRequestClosure:
         vi.fn(),
 
-      findClientPortalGrantById:
-        vi.fn(),
-      createClientPortalGrant:
-        vi.fn(),
-      consumeClientPortalGrant:
-        vi.fn(),
-      revokeClientPortalGrant:
-        vi.fn(),
-
-      revokeOtherRequestChangeGrants:
-        vi.fn(),
-      revokeOtherDecisionGrantsForProposal:
-        vi.fn(),
-      revokeDecisionGrantsForRequest:
-        vi.fn(),
-
       releaseActiveChangeRequest:
         vi.fn(),
-
     };
 
   const lifecycleRepository = {
@@ -397,39 +481,53 @@ function dependencies(
             session,
           ),
       ),
+    findClientPortalGrantByTokenHash:
+      vi.fn(),
   } as unknown as
     ChangeControlLifecycleRepository;
+
+  const tokenService = {
+    issueToken:
+      vi.fn()
+        .mockReturnValue({
+          rawToken:
+            "raw-decision-token",
+          tokenHash:
+            "hashed-decision-token",
+        }),
+
+    hashToken:
+      vi.fn(),
+  } as unknown as
+    ClientPortalTokenService;
 
   return {
     clientRepository,
     orderRepository,
     garmentRepository,
     lifecycleRepository,
+    tokenService,
     session,
   };
 }
 
 const REQUEST = {
-  garmentId: "garment-1",
+  garmentId:
+    "garment-1",
   changeRequestId:
     "change-request-1",
   changeProposalVersionId:
     "proposal-1",
-  occurredAt:
-    new Date(
-      "2026-09-09T14:00:00.000Z",
-    ),
-  clientDecisionChannel:
-    "WHATSAPP",
-  evidenceNote:
-    "Client rejected the proposal.",
-} as const;
+  expiresAt:
+    EXPIRES_AT,
+};
 
 describe(
-  "recordChangeProposalRejectionForTenant",
+  "issueChangeProposalDecisionPortalGrantForTenant",
   () => {
     beforeEach(() => {
       vi.useFakeTimers();
+
       vi.setSystemTime(
         NOW,
       );
@@ -440,204 +538,73 @@ describe(
     });
 
     it(
-      "records an immutable Business-recorded rejection for the latest pending proposal",
+      "issues one DECIDE_CHANGE_PROPOSAL capability for the latest pending proposal",
       async () => {
         const deps =
           dependencies();
 
         const result =
-          await recordChangeProposalRejectionForTenant(
+          await issueChangeProposalDecisionPortalGrantForTenant(
             deps.clientRepository,
             deps.orderRepository,
             deps.garmentRepository,
             deps.lifecycleRepository,
+            deps.tokenService,
             TENANT,
             REQUEST,
           );
 
         expect(
-          result,
-        ).toMatchObject({
-          id: "decision-new",
+          deps.session
+            .createClientPortalGrant,
+        ).toHaveBeenCalledWith({
           businessId:
-            "business-1",
+            TENANT.businessId,
+          clientId:
+            CLIENT.id,
+          orderId:
+            ORDER.id,
+          garmentId:
+            GARMENT.id,
           changeProposalVersionId:
-            "proposal-1",
-          outcome: "REJECTED",
-          clientNameSnapshot:
-            "Ada Okafor",
-          decisionSource:
-            "BUSINESS_RECORDED",
-          clientDecisionChannel:
-            "WHATSAPP",
-          recordedByMembershipId:
-            "membership-1",
-          portalGrantId: null,
+            PROPOSAL.id,
+          purpose:
+            "DECIDE_CHANGE_PROPOSAL",
+          tokenHash:
+            "hashed-decision-token",
+          expiresAt:
+            EXPIRES_AT,
+          createdByMembershipId:
+            TENANT.membershipId,
+          createdAt:
+            NOW,
         });
-      },
-    );
 
-    it(
-      "rejects PORTAL as a staff-recorded channel",
-      async () => {
-        const deps =
-          dependencies();
-
-        await expect(
-          recordChangeProposalRejectionForTenant(
-            deps.clientRepository,
-            deps.orderRepository,
-            deps.garmentRepository,
-            deps.lifecycleRepository,
-            TENANT,
-            {
-              ...REQUEST,
-              clientDecisionChannel:
-                "PORTAL",
-            },
-          ),
-        ).rejects.toMatchObject({
-          code: "CONFLICT",
-        });
-      },
-    );
-
-    it(
-      "rejects a decision before proposal creation",
-      async () => {
-        const deps =
-          dependencies();
-
-        await expect(
-          recordChangeProposalRejectionForTenant(
-            deps.clientRepository,
-            deps.orderRepository,
-            deps.garmentRepository,
-            deps.lifecycleRepository,
-            TENANT,
-            {
-              ...REQUEST,
-              occurredAt:
-                new Date(
-                  "2026-09-09T12:59:59.999Z",
-                ),
-            },
-          ),
-        ).rejects.toMatchObject({
-          code: "CONFLICT",
-        });
-      },
-    );
-
-    it(
-      "rejects a proposal that has already been decided",
-      async () => {
-        const deps =
-          dependencies({
-            existingDecision:
-              existingDecision(),
-          });
-
-        await expect(
-          recordChangeProposalRejectionForTenant(
-            deps.clientRepository,
-            deps.orderRepository,
-            deps.garmentRepository,
-            deps.lifecycleRepository,
-            TENANT,
-            REQUEST,
-          ),
-        ).rejects.toMatchObject({
-          code: "CONFLICT",
+        expect(result).toEqual({
+          clientPortalGrantId:
+            "portal-grant-1",
+          rawToken:
+            "raw-decision-token",
+          purpose:
+            "DECIDE_CHANGE_PROPOSAL",
+          changeProposalVersionId:
+            PROPOSAL.id,
+          expiresAt:
+            EXPIRES_AT,
+          createdAt:
+            NOW,
         });
 
         expect(
-          deps.session
-            .createChangeProposalDecision,
-        ).not.toHaveBeenCalled();
+          result,
+        ).not.toHaveProperty(
+          "tokenHash",
+        );
       },
     );
 
     it(
-      "rejects a closed change request",
-      async () => {
-        const deps =
-          dependencies({
-            closure:
-              closure(),
-          });
-
-        await expect(
-          recordChangeProposalRejectionForTenant(
-            deps.clientRepository,
-            deps.orderRepository,
-            deps.garmentRepository,
-            deps.lifecycleRepository,
-            TENANT,
-            REQUEST,
-          ),
-        ).rejects.toMatchObject({
-          code: "CONFLICT",
-        });
-      },
-    );
-
-    it(
-      "rejects a stale proposal identifier",
-      async () => {
-        const deps =
-          dependencies();
-
-        await expect(
-          recordChangeProposalRejectionForTenant(
-            deps.clientRepository,
-            deps.orderRepository,
-            deps.garmentRepository,
-            deps.lifecycleRepository,
-            TENANT,
-            {
-              ...REQUEST,
-              changeProposalVersionId:
-                "proposal-old",
-            },
-          ),
-        ).rejects.toMatchObject({
-          code: "NOT_FOUND",
-        });
-      },
-    );
-
-    it(
-      "rejects when the approved baseline is no longer current",
-      async () => {
-        const deps =
-          dependencies({
-            latestAgreement: {
-              ...AGREEMENT,
-              id: "agreement-2",
-              revisionNumber: 2,
-              supersedesAgreementVersionId:
-                "agreement-1",
-            },
-          });
-
-        await expect(
-          recordChangeProposalRejectionForTenant(
-            deps.clientRepository,
-            deps.orderRepository,
-            deps.garmentRepository,
-            deps.lifecycleRepository,
-            TENANT,
-            REQUEST,
-          ),
-        ).rejects.toMatchObject({
-          code: "CONFLICT",
-        });
-      },
-    );
-
-    it(
-      "returns NOT_FOUND for an inaccessible active request",
+      "refuses issuance when the requested ChangeRequest is not active",
       async () => {
         const deps =
           dependencies({
@@ -646,45 +613,195 @@ describe(
           });
 
         await expect(
-          recordChangeProposalRejectionForTenant(
+          issueChangeProposalDecisionPortalGrantForTenant(
             deps.clientRepository,
             deps.orderRepository,
             deps.garmentRepository,
             deps.lifecycleRepository,
+            deps.tokenService,
             TENANT,
             REQUEST,
           ),
         ).rejects.toMatchObject({
-          code: "NOT_FOUND",
+          code:
+            "NOT_FOUND",
         });
+
+        expect(
+          deps.tokenService
+            .issueToken,
+        ).not.toHaveBeenCalled();
       },
     );
 
     it(
-      "revokes outstanding decision portal grants after Business-recorded rejection",
+      "refuses issuance when the approved baseline is no longer current",
+      async () => {
+        const deps =
+          dependencies({
+            latestAgreement: {
+              ...AGREEMENT,
+              id:
+                "agreement-2",
+              revisionNumber:
+                2,
+              supersedesAgreementVersionId:
+                AGREEMENT.id,
+            },
+          });
+
+        await expect(
+          issueChangeProposalDecisionPortalGrantForTenant(
+            deps.clientRepository,
+            deps.orderRepository,
+            deps.garmentRepository,
+            deps.lifecycleRepository,
+            deps.tokenService,
+            TENANT,
+            REQUEST,
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "CONFLICT",
+        });
+
+        expect(
+          deps.tokenService
+            .issueToken,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    it(
+      "refuses issuance when the requested proposal is no longer the latest",
+      async () => {
+        const deps =
+          dependencies({
+            latestProposal: {
+              ...PROPOSAL,
+              id:
+                "proposal-2",
+              revisionNumber:
+                2,
+              supersedesChangeProposalVersionId:
+                PROPOSAL.id,
+            },
+          });
+
+        await expect(
+          issueChangeProposalDecisionPortalGrantForTenant(
+            deps.clientRepository,
+            deps.orderRepository,
+            deps.garmentRepository,
+            deps.lifecycleRepository,
+            deps.tokenService,
+            TENANT,
+            REQUEST,
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "NOT_FOUND",
+        });
+
+        expect(
+          deps.tokenService
+            .issueToken,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    it(
+      "refuses issuance after the proposal already has a decision",
+      async () => {
+        const deps =
+          dependencies({
+            existingDecision:
+              EXISTING_DECISION,
+          });
+
+        await expect(
+          issueChangeProposalDecisionPortalGrantForTenant(
+            deps.clientRepository,
+            deps.orderRepository,
+            deps.garmentRepository,
+            deps.lifecycleRepository,
+            deps.tokenService,
+            TENANT,
+            REQUEST,
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "CONFLICT",
+        });
+
+        expect(
+          deps.tokenService
+            .issueToken,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    it(
+      "refuses issuance after the ChangeRequest has been closed",
+      async () => {
+        const deps =
+          dependencies({
+            closure:
+              CLOSURE,
+          });
+
+        await expect(
+          issueChangeProposalDecisionPortalGrantForTenant(
+            deps.clientRepository,
+            deps.orderRepository,
+            deps.garmentRepository,
+            deps.lifecycleRepository,
+            deps.tokenService,
+            TENANT,
+            REQUEST,
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "CONFLICT",
+        });
+
+        expect(
+          deps.session
+            .createClientPortalGrant,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    it(
+      "rejects an expiry that is not later than the issuance time",
       async () => {
         const deps =
           dependencies();
 
-        await recordChangeProposalRejectionForTenant(
-          deps.clientRepository,
-          deps.orderRepository,
-          deps.garmentRepository,
-          deps.lifecycleRepository,
-          TENANT,
-          REQUEST,
-        );
+        await expect(
+          issueChangeProposalDecisionPortalGrantForTenant(
+            deps.clientRepository,
+            deps.orderRepository,
+            deps.garmentRepository,
+            deps.lifecycleRepository,
+            deps.tokenService,
+            TENANT,
+            {
+              ...REQUEST,
+              expiresAt:
+                NOW,
+            },
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "CONFLICT",
+        });
 
         expect(
           deps.session
-            .revokeOtherDecisionGrantsForProposal,
-        ).toHaveBeenCalledWith(
-          "proposal-1",
-          null,
-          NOW,
-        );
+            .createClientPortalGrant,
+        ).not.toHaveBeenCalled();
       },
     );
-
   },
 );

@@ -12,6 +12,7 @@ import type {
   ChangeControlLifecycleScope,
   ChangeControlLifecycleSession,
   CreateAppliedAgreementResolutionData,
+  CreateClientPortalGrantData,
   CreateAppliedAgreementVersionData,
   CreateChangeProposalDecisionData,
   CreateChangeProposalVersionData,
@@ -24,6 +25,7 @@ import {
   toChangeProposalDecision,
   toChangeProposalVersion,
   toChangeRequest,
+  toClientPortalGrant,
   toChangeRequestClosure,
 } from "./prisma-change-control-mappers";
 
@@ -128,6 +130,24 @@ function assertClosureScope(
   ) {
     throw new Error(
       "Change request closure does not match the active garment lifecycle scope.",
+    );
+  }
+}
+
+function assertClientPortalGrantScope(
+  scope:
+    ChangeControlLifecycleScope,
+  data:
+    CreateClientPortalGrantData,
+): void {
+  if (
+    data.businessId !==
+      scope.businessId ||
+    data.garmentId !==
+      scope.garmentId
+  ) {
+    throw new Error(
+      "Client portal grant does not match the active garment lifecycle scope.",
     );
   }
 }
@@ -301,6 +321,319 @@ function createLifecycleSession(
             record,
           )
         : null;
+    },
+
+    async findClientPortalGrantById(
+      clientPortalGrantId,
+    ) {
+      const record =
+        await transaction
+          .clientPortalGrant
+          .findFirst({
+            where: {
+              id:
+                clientPortalGrantId,
+              businessId:
+                scope.businessId,
+              garmentId:
+                scope.garmentId,
+            },
+          });
+
+      return record
+        ? toClientPortalGrant(
+            record,
+          )
+        : null;
+    },
+
+    async createClientPortalGrant(
+      data,
+    ) {
+      assertClientPortalGrantScope(
+        scope,
+        data,
+      );
+
+      const record =
+        await transaction
+          .clientPortalGrant
+          .create({
+            data: {
+              businessId:
+                data.businessId,
+              clientId:
+                data.clientId,
+              orderId:
+                data.orderId,
+              garmentId:
+                data.garmentId,
+              changeProposalVersionId:
+                data
+                  .changeProposalVersionId,
+              purpose:
+                data.purpose,
+              tokenHash:
+                data.tokenHash,
+              expiresAt:
+                data.expiresAt,
+              createdByMembershipId:
+                data
+                  .createdByMembershipId,
+              createdAt:
+                data.createdAt,
+            },
+          });
+
+      return toClientPortalGrant(
+        record,
+      );
+    },
+
+    async consumeClientPortalGrant(
+      clientPortalGrantId,
+      consumedAt,
+    ) {
+      const result =
+        await transaction
+          .clientPortalGrant
+          .updateMany({
+            where: {
+              id:
+                clientPortalGrantId,
+              businessId:
+                scope.businessId,
+              garmentId:
+                scope.garmentId,
+              consumedAt:
+                null,
+              revokedAt:
+                null,
+              createdAt: {
+                lte:
+                  consumedAt,
+              },
+              expiresAt: {
+                gt:
+                  consumedAt,
+              },
+            },
+            data: {
+              consumedAt,
+            },
+          });
+
+      if (result.count !== 1) {
+        throw new Error(
+          "Client portal grant could not be consumed from its active state.",
+        );
+      }
+
+      const record =
+        await transaction
+          .clientPortalGrant
+          .findFirstOrThrow({
+            where: {
+              id:
+                clientPortalGrantId,
+              businessId:
+                scope.businessId,
+              garmentId:
+                scope.garmentId,
+            },
+          });
+
+      return toClientPortalGrant(
+        record,
+      );
+    },
+
+    async revokeClientPortalGrant(
+      clientPortalGrantId,
+      revokedAt,
+    ) {
+      const result =
+        await transaction
+          .clientPortalGrant
+          .updateMany({
+            where: {
+              id:
+                clientPortalGrantId,
+              businessId:
+                scope.businessId,
+              garmentId:
+                scope.garmentId,
+              consumedAt:
+                null,
+              revokedAt:
+                null,
+              createdAt: {
+                lte:
+                  revokedAt,
+              },
+            },
+            data: {
+              revokedAt,
+            },
+          });
+
+      if (result.count !== 1) {
+        throw new Error(
+          "Client portal grant could not be revoked from its active state.",
+        );
+      }
+
+      const record =
+        await transaction
+          .clientPortalGrant
+          .findFirstOrThrow({
+            where: {
+              id:
+                clientPortalGrantId,
+              businessId:
+                scope.businessId,
+              garmentId:
+                scope.garmentId,
+            },
+          });
+
+      return toClientPortalGrant(
+        record,
+      );
+    },
+
+    async revokeOtherRequestChangeGrants(
+      clientId,
+      exceptClientPortalGrantId,
+      revokedAt,
+    ) {
+      await transaction
+        .clientPortalGrant
+        .updateMany({
+          where: {
+            businessId:
+              scope.businessId,
+            clientId,
+            garmentId:
+              scope.garmentId,
+            purpose:
+              "REQUEST_CHANGE",
+            id:
+              exceptClientPortalGrantId
+                ? {
+                    not:
+                      exceptClientPortalGrantId,
+                  }
+                : undefined,
+            consumedAt:
+              null,
+            revokedAt:
+              null,
+            createdAt: {
+              lte:
+                revokedAt,
+            },
+          },
+          data: {
+            revokedAt,
+          },
+        });
+    },
+
+    async revokeOtherDecisionGrantsForProposal(
+      changeProposalVersionId,
+      exceptClientPortalGrantId,
+      revokedAt,
+    ) {
+      await transaction
+        .clientPortalGrant
+        .updateMany({
+          where: {
+            businessId:
+              scope.businessId,
+            garmentId:
+              scope.garmentId,
+            changeProposalVersionId,
+            purpose:
+              "DECIDE_CHANGE_PROPOSAL",
+            id:
+              exceptClientPortalGrantId
+                ? {
+                    not:
+                      exceptClientPortalGrantId,
+                  }
+                : undefined,
+            consumedAt:
+              null,
+            revokedAt:
+              null,
+            createdAt: {
+              lte:
+                revokedAt,
+            },
+          },
+          data: {
+            revokedAt,
+          },
+        });
+    },
+
+    async revokeDecisionGrantsForRequest(
+      changeRequestId,
+      revokedAt,
+    ) {
+      const proposals =
+        await transaction
+          .changeProposalVersion
+          .findMany({
+            where: {
+              businessId:
+                scope.businessId,
+              garmentId:
+                scope.garmentId,
+              changeRequestId,
+            },
+            select: {
+              id: true,
+            },
+          });
+
+      if (
+        proposals.length === 0
+      ) {
+        return;
+      }
+
+      await transaction
+        .clientPortalGrant
+        .updateMany({
+          where: {
+            businessId:
+              scope.businessId,
+            garmentId:
+              scope.garmentId,
+            purpose:
+              "DECIDE_CHANGE_PROPOSAL",
+            changeProposalVersionId: {
+              in:
+                proposals.map(
+                  (proposal) =>
+                    proposal.id,
+                ),
+            },
+            consumedAt:
+              null,
+            revokedAt:
+              null,
+            createdAt: {
+              lte:
+                revokedAt,
+            },
+          },
+          data: {
+            revokedAt,
+          },
+        });
     },
 
     async createChangeRequest(data) {
@@ -771,6 +1104,25 @@ function createLifecycleSession(
 
 export const prismaChangeControlLifecycleRepository:
   ChangeControlLifecycleRepository = {
+    async findClientPortalGrantByTokenHash(
+      tokenHash,
+    ) {
+      const record =
+        await prisma
+          .clientPortalGrant
+          .findUnique({
+            where: {
+              tokenHash,
+            },
+          });
+
+      return record
+        ? toClientPortalGrant(
+            record,
+          )
+        : null;
+    },
+
     async withGarmentLifecycle(
       scope,
       operation,

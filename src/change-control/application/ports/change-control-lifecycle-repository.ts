@@ -7,6 +7,10 @@ import type {
   AgreementVersionDetails,
 } from "../../../agreement/domain/agreement-version";
 import type {
+  ClientPortalGrant,
+  ClientPortalGrantPurpose,
+} from "../../domain/client-portal-grant";
+import type {
   ChangeProposalDecision,
   ChangeProposalDecisionDetails,
 } from "../../domain/change-proposal-decision";
@@ -27,6 +31,23 @@ export type ChangeControlLifecycleScope =
   Readonly<{
     businessId: string;
     garmentId: string;
+  }>;
+
+export type CreateClientPortalGrantData =
+  Readonly<{
+    businessId: string;
+    clientId: string;
+    orderId: string;
+    garmentId: string;
+    changeProposalVersionId:
+      string | null;
+    purpose:
+      ClientPortalGrantPurpose;
+    tokenHash: string;
+    expiresAt: Date;
+    createdByMembershipId:
+      string;
+    createdAt: Date;
   }>;
 
 export type CreateChangeRequestData =
@@ -124,6 +145,45 @@ export interface ChangeControlLifecycleSession {
     changeRequestId: string,
   ): Promise<ChangeRequestClosure | null>;
 
+  findClientPortalGrantById(
+    clientPortalGrantId: string,
+  ): Promise<ClientPortalGrant | null>;
+
+  createClientPortalGrant(
+    data:
+      CreateClientPortalGrantData,
+  ): Promise<ClientPortalGrant>;
+
+  consumeClientPortalGrant(
+    clientPortalGrantId: string,
+    consumedAt: Date,
+  ): Promise<ClientPortalGrant>;
+
+  revokeClientPortalGrant(
+    clientPortalGrantId: string,
+    revokedAt: Date,
+  ): Promise<ClientPortalGrant>;
+
+  revokeOtherRequestChangeGrants(
+    clientId: string,
+    exceptClientPortalGrantId:
+      string | null,
+    revokedAt: Date,
+  ): Promise<void>;
+
+  revokeOtherDecisionGrantsForProposal(
+    changeProposalVersionId:
+      string,
+    exceptClientPortalGrantId:
+      string | null,
+    revokedAt: Date,
+  ): Promise<void>;
+
+  revokeDecisionGrantsForRequest(
+    changeRequestId: string,
+    revokedAt: Date,
+  ): Promise<void>;
+
   createChangeRequest(
     data: CreateChangeRequestData,
   ): Promise<ChangeRequest>;
@@ -159,6 +219,10 @@ export interface ChangeControlLifecycleSession {
 }
 
 export interface ChangeControlLifecycleRepository {
+  findClientPortalGrantByTokenHash(
+    tokenHash: string,
+  ): Promise<ClientPortalGrant | null>;
+
   withGarmentLifecycle<T>(
     scope:
       ChangeControlLifecycleScope,

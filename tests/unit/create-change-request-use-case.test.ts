@@ -307,6 +307,22 @@ function dependencies(
       createChangeRequestClosure:
         vi.fn(),
 
+      findClientPortalGrantById:
+        vi.fn(),
+      createClientPortalGrant:
+        vi.fn(),
+      consumeClientPortalGrant:
+        vi.fn(),
+      revokeClientPortalGrant:
+        vi.fn(),
+
+      revokeOtherRequestChangeGrants:
+        vi.fn(),
+      revokeOtherDecisionGrantsForProposal:
+        vi.fn(),
+      revokeDecisionGrantsForRequest:
+        vi.fn(),
+
       releaseActiveChangeRequest:
         vi.fn(),
 
@@ -701,5 +717,45 @@ describe(
         });
       },
     );
+
+    it(
+      "revokes outstanding REQUEST_CHANGE portal grants after Business-recorded request creation",
+      async () => {
+        const deps =
+          dependencies();
+
+        await createChangeRequestForTenant(
+          deps.clientRepository,
+          deps.orderRepository,
+          deps.garmentRepository,
+          deps.lifecycleRepository,
+          TENANT,
+          {
+            garmentId:
+              "garment-1",
+            requestedBy:
+              "CLIENT",
+            requestChannel:
+              "WHATSAPP",
+            description:
+              "Add long sleeves",
+            requestedAt:
+              new Date(
+                "2026-09-09T12:00:00.000Z",
+              ),
+          },
+        );
+
+        expect(
+          deps.session
+            .revokeOtherRequestChangeGrants,
+        ).toHaveBeenCalledWith(
+          "client-1",
+          null,
+          NOW,
+        );
+      },
+    );
+
   },
 );

@@ -1,9 +1,14 @@
 import type {
+  ClientPortalGrant as PrismaClientPortalGrant,
   ChangeProposalDecision as PrismaChangeProposalDecision,
   ChangeProposalVersion as PrismaChangeProposalVersion,
   ChangeRequest as PrismaChangeRequest,
   ChangeRequestClosure as PrismaChangeRequestClosure,
 } from "../../generated/prisma/client";
+import {
+  normalizeClientPortalGrantDetails,
+  type ClientPortalGrant,
+} from "../domain/client-portal-grant";
 import type {
   ChangeProposalDecision,
 } from "../domain/change-proposal-decision";
@@ -215,5 +220,48 @@ export function toChangeRequestClosure(
         .recordedByMembershipId,
     createdAt:
       record.createdAt,
+  };
+}
+
+export function toClientPortalGrant(
+  record:
+    PrismaClientPortalGrant,
+): ClientPortalGrant {
+  const details =
+    normalizeClientPortalGrantDetails({
+      purpose:
+        record.purpose,
+      changeProposalVersionId:
+        record
+          .changeProposalVersionId,
+      tokenHash:
+        record.tokenHash,
+      expiresAt:
+        record.expiresAt,
+      consumedAt:
+        record.consumedAt,
+      revokedAt:
+        record.revokedAt,
+      createdAt:
+        record.createdAt,
+    });
+
+  return {
+    id:
+      record.id,
+    businessId:
+      record.businessId,
+    clientId:
+      record.clientId,
+    orderId:
+      record.orderId,
+    garmentId:
+      record.garmentId,
+    createdByMembershipId:
+      record
+        .createdByMembershipId,
+    createdAt:
+      record.createdAt,
+    ...details,
   };
 }

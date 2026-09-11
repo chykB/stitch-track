@@ -341,6 +341,13 @@ export async function recordChangeProposalApprovalForTenant(
                 ...decisionDetails,
               });
 
+          await session
+            .revokeOtherDecisionGrantsForProposal(
+              latestProposal.id,
+              null,
+              new Date(),
+            );
+
           const agreementVersion =
             await session
               .createAppliedAgreementVersion({

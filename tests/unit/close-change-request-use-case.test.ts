@@ -351,6 +351,22 @@ function dependencies(
           }),
         ),
 
+      findClientPortalGrantById:
+        vi.fn(),
+      createClientPortalGrant:
+        vi.fn(),
+      consumeClientPortalGrant:
+        vi.fn(),
+      revokeClientPortalGrant:
+        vi.fn(),
+
+      revokeOtherRequestChangeGrants:
+        vi.fn(),
+      revokeOtherDecisionGrantsForProposal:
+        vi.fn(),
+      revokeDecisionGrantsForRequest:
+        vi.fn(),
+
       releaseActiveChangeRequest:
         vi.fn(),
     };
@@ -632,5 +648,34 @@ describe(
         });
       },
     );
+
+    it(
+      "revokes outstanding decision portal grants when the ChangeRequest closes",
+      async () => {
+        const deps =
+          dependencies({
+            latestProposal:
+              PROPOSAL,
+          });
+
+        await closeChangeRequestForTenant(
+          deps.clientRepository,
+          deps.orderRepository,
+          deps.garmentRepository,
+          deps.lifecycleRepository,
+          TENANT,
+          REQUEST,
+        );
+
+        expect(
+          deps.session
+            .revokeDecisionGrantsForRequest,
+        ).toHaveBeenCalledWith(
+          "change-request-1",
+          NOW,
+        );
+      },
+    );
+
   },
 );

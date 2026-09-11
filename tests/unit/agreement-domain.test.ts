@@ -264,9 +264,9 @@ describe(
       );
 
     it(
-      "reserves PORTAL for the controlled portal workflow",
+      "supports PORTAL evidence for a controlled portal workflow",
       () => {
-        expect(() =>
+        expect(
           normalizeAgreementResolutionDetails({
             outcome:
               "APPROVED",
@@ -283,9 +283,16 @@ describe(
             agreementCreatedAt,
             now,
           }),
-        ).toThrow(
-          "Client decision channel is invalid.",
-        );
+        ).toMatchObject({
+          outcome:
+            "APPROVED",
+          clientNameSnapshot:
+            "Ada Okafor",
+          clientDecisionChannel:
+            "PORTAL",
+          evidenceNote:
+            "Portal approval.",
+        });
       },
     );
 

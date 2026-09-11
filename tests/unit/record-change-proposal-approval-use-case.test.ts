@@ -391,6 +391,22 @@ function dependencies(
       createChangeRequestClosure:
         vi.fn(),
 
+      findClientPortalGrantById:
+        vi.fn(),
+      createClientPortalGrant:
+        vi.fn(),
+      consumeClientPortalGrant:
+        vi.fn(),
+      revokeClientPortalGrant:
+        vi.fn(),
+
+      revokeOtherRequestChangeGrants:
+        vi.fn(),
+      revokeOtherDecisionGrantsForProposal:
+        vi.fn(),
+      revokeDecisionGrantsForRequest:
+        vi.fn(),
+
       releaseActiveChangeRequest:
         vi.fn(),
 
@@ -748,5 +764,32 @@ describe(
         ).not.toHaveBeenCalled();
       },
     );
+
+    it(
+      "revokes outstanding decision portal grants after Business-recorded approval",
+      async () => {
+        const deps =
+          dependencies();
+
+        await recordChangeProposalApprovalForTenant(
+          deps.clientRepository,
+          deps.orderRepository,
+          deps.garmentRepository,
+          deps.lifecycleRepository,
+          TENANT,
+          REQUEST,
+        );
+
+        expect(
+          deps.session
+            .revokeOtherDecisionGrantsForProposal,
+        ).toHaveBeenCalledWith(
+          "proposal-1",
+          null,
+          NOW,
+        );
+      },
+    );
+
   },
 );

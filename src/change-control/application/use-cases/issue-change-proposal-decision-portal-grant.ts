@@ -14,9 +14,8 @@ import type {
   TenantContext,
 } from "../../../shared/application/tenancy/tenant-context";
 import {
-  normalizeChangeProposalDecisionDetails,
-  type ChangeProposalDecision,
-} from "../../domain/change-proposal-decision";
+  normalizeClientPortalGrantDetails,
+} from "../../domain/client-portal-grant";
 import {
   assertChangeRequestActive,
   deriveChangeRequestState,
@@ -24,17 +23,29 @@ import {
 import type {
   ChangeControlLifecycleRepository,
 } from "../ports/change-control-lifecycle-repository";
+import type {
+  ClientPortalTokenService,
+} from "../ports/client-portal-token-service";
 
-export type RecordChangeProposalRejectionRequest =
+export type IssueChangeProposalDecisionPortalGrantRequest =
   Readonly<{
     garmentId: string;
     changeRequestId: string;
     changeProposalVersionId:
       string;
-    occurredAt: Date;
-    clientDecisionChannel:
-      string | null;
-    evidenceNote: string;
+    expiresAt: Date;
+  }>;
+
+export type IssuedChangeProposalDecisionPortalGrant =
+  Readonly<{
+    clientPortalGrantId: string;
+    rawToken: string;
+    purpose:
+      "DECIDE_CHANGE_PROPOSAL";
+    changeProposalVersionId:
+      string;
+    expiresAt: Date;
+    createdAt: Date;
   }>;
 
 function toConflict(
@@ -52,7 +63,7 @@ function toConflict(
   throw error;
 }
 
-export async function recordChangeProposalRejectionForTenant(
+export async function issueChangeProposalDecisionPortalGrantForTenant(
   clientRepository:
     ClientRepository,
   orderRepository:
@@ -61,11 +72,13 @@ export async function recordChangeProposalRejectionForTenant(
     GarmentRepository,
   changeControlLifecycleRepository:
     ChangeControlLifecycleRepository,
+  clientPortalTokenService:
+    ClientPortalTokenService,
   tenantContext:
     TenantContext,
   request:
-    RecordChangeProposalRejectionRequest,
-): Promise<ChangeProposalDecision> {
+    IssueChangeProposalDecisionPortalGrantRequest,
+): Promise<IssuedChangeProposalDecisionPortalGrant> {
   const garment =
     await garmentRepository.findById({
       businessId:
@@ -167,6 +180,22 @@ export async function recordChangeProposalRejectionForTenant(
           );
         }
 
+        if (
+          latestAgreement.businessId !==
+            tenantContext.businessId ||
+          latestAgreement.clientId !==
+            client.id ||
+          latestAgreement.orderId !==
+            order.id ||
+          latestAgreement.garmentId !==
+            garment.id
+        ) {
+          throw new ApplicationError(
+            "NOT_FOUND",
+            "Current agreement was not found for this garment.",
+          );
+        }
+
         const baselineResolution =
           await session
             .findAgreementResolutionForVersion(
@@ -263,49 +292,70 @@ export async function recordChangeProposalRejectionForTenant(
             );
           }
 
+          const issuedAt =
+            new Date();
+
+          const tokenMaterial =
+            clientPortalTokenService
+              .issueToken();
+
           const details =
-            normalizeChangeProposalDecisionDetails({
-              outcome:
-                "REJECTED",
-              occurredAt:
-                request.occurredAt,
-              clientNameSnapshot:
-                client.name,
-              decisionSource:
-                "BUSINESS_RECORDED",
-              clientDecisionChannel:
-                request
-                  .clientDecisionChannel,
-              evidenceNote:
-                request.evidenceNote,
-              proposalCreatedAt:
-                latestProposal.createdAt,
-              now:
-                new Date(),
+            normalizeClientPortalGrantDetails({
+              purpose:
+                "DECIDE_CHANGE_PROPOSAL",
+              changeProposalVersionId:
+                latestProposal.id,
+              tokenHash:
+                tokenMaterial.tokenHash,
+              expiresAt:
+                request.expiresAt,
+              consumedAt:
+                null,
+              revokedAt:
+                null,
+              createdAt:
+                issuedAt,
             });
 
-          const decision =
+          const grant =
             await session
-              .createChangeProposalDecision({
+              .createClientPortalGrant({
                 businessId:
                   tenantContext.businessId,
+                clientId:
+                  client.id,
+                orderId:
+                  order.id,
+                garmentId:
+                  garment.id,
                 changeProposalVersionId:
                   latestProposal.id,
-                recordedByMembershipId:
+                purpose:
+                  details.purpose,
+                tokenHash:
+                  details.tokenHash,
+                expiresAt:
+                  details.expiresAt,
+                createdByMembershipId:
                   tenantContext.membershipId,
-                portalGrantId:
-                  null,
-                ...details,
+                createdAt:
+                  issuedAt,
               });
 
-          await session
-            .revokeOtherDecisionGrantsForProposal(
+          return {
+            clientPortalGrantId:
+              grant.id,
+            rawToken:
+              tokenMaterial.rawToken,
+            purpose:
+              "DECIDE_CHANGE_PROPOSAL",
+            changeProposalVersionId:
               latestProposal.id,
-              null,
-              new Date(),
-            );
-
-          return decision;
+            expiresAt:
+              grant.expiresAt,
+            createdAt:
+              grant.createdAt,
+          };
         } catch (error) {
           return toConflict(
             error,

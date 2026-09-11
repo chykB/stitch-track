@@ -222,6 +222,12 @@ export async function closeChangeRequestForTenant(
               });
 
           await session
+            .revokeDecisionGrantsForRequest(
+              activeRequest.id,
+              new Date(),
+            );
+
+          await session
             .releaseActiveChangeRequest(
               activeRequest.id,
             );

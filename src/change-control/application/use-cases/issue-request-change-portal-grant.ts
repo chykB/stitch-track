@@ -14,24 +14,49 @@ import type {
   TenantContext,
 } from "../../../shared/application/tenancy/tenant-context";
 import {
-  normalizeChangeRequestDetails,
-  type ChangeRequest,
-} from "../../domain/change-request";
+  normalizeClientPortalGrantDetails,
+} from "../../domain/client-portal-grant";
 import type {
   ChangeControlLifecycleRepository,
 } from "../ports/change-control-lifecycle-repository";
+import type {
+  ClientPortalTokenService,
+} from "../ports/client-portal-token-service";
 
-export type CreateChangeRequestRequest =
+export type IssueRequestChangePortalGrantRequest =
   Readonly<{
     garmentId: string;
-    requestedBy: string;
-    requestChannel?:
-      string | null;
-    description: string;
-    requestedAt: Date;
+    expiresAt: Date;
   }>;
 
-export async function createChangeRequestForTenant(
+export type IssuedRequestChangePortalGrant =
+  Readonly<{
+    clientPortalGrantId: string;
+    rawToken: string;
+    purpose:
+      "REQUEST_CHANGE";
+    changeProposalVersionId:
+      null;
+    expiresAt: Date;
+    createdAt: Date;
+  }>;
+
+function toConflict(
+  error: unknown,
+): never {
+  if (
+    error instanceof Error
+  ) {
+    throw new ApplicationError(
+      "CONFLICT",
+      error.message,
+    );
+  }
+
+  throw error;
+}
+
+export async function issueRequestChangePortalGrantForTenant(
   clientRepository:
     ClientRepository,
   orderRepository:
@@ -40,11 +65,13 @@ export async function createChangeRequestForTenant(
     GarmentRepository,
   changeControlLifecycleRepository:
     ChangeControlLifecycleRepository,
+  clientPortalTokenService:
+    ClientPortalTokenService,
   tenantContext:
     TenantContext,
   request:
-    CreateChangeRequestRequest,
-): Promise<ChangeRequest> {
+    IssueRequestChangePortalGrantRequest,
+): Promise<IssuedRequestChangePortalGrant> {
   const garment =
     await garmentRepository.findById({
       businessId:
@@ -106,19 +133,19 @@ export async function createChangeRequestForTenant(
         if (!latestAgreement) {
           throw new ApplicationError(
             "CONFLICT",
-            "An approved agreement is required before recording a post-approval change.",
+            "An approved agreement is required before issuing a change-request portal link.",
           );
         }
 
         if (
           latestAgreement.businessId !==
             tenantContext.businessId ||
-          latestAgreement.garmentId !==
-            garment.id ||
+          latestAgreement.clientId !==
+            client.id ||
           latestAgreement.orderId !==
             order.id ||
-          latestAgreement.clientId !==
-            client.id
+          latestAgreement.garmentId !==
+            garment.id
         ) {
           throw new ApplicationError(
             "NOT_FOUND",
@@ -139,7 +166,7 @@ export async function createChangeRequestForTenant(
         ) {
           throw new ApplicationError(
             "CONFLICT",
-            "The current agreement must be approved before starting change control.",
+            "The current agreement must be approved before issuing a change-request portal link.",
           );
         }
 
@@ -150,47 +177,46 @@ export async function createChangeRequestForTenant(
         if (activeRequest) {
           throw new ApplicationError(
             "CONFLICT",
-            "This garment already has an active change request.",
+            "A change request is already active for this garment.",
           );
         }
+
+        const issuedAt =
+          new Date();
+
+        const tokenMaterial =
+          clientPortalTokenService
+            .issueToken();
 
         let details;
 
         try {
           details =
-            normalizeChangeRequestDetails({
-              requestedBy:
-                request.requestedBy,
-              origin:
-                "BUSINESS_RECORDED",
-              requestChannel:
-                request.requestChannel,
-              description:
-                request.description,
-              requestedAt:
-                request.requestedAt,
-              baselineResolutionOccurredAt:
-                baselineResolution
-                  .occurredAt,
-              now:
-                new Date(),
+            normalizeClientPortalGrantDetails({
+              purpose:
+                "REQUEST_CHANGE",
+              changeProposalVersionId:
+                null,
+              tokenHash:
+                tokenMaterial.tokenHash,
+              expiresAt:
+                request.expiresAt,
+              consumedAt:
+                null,
+              revokedAt:
+                null,
+              createdAt:
+                issuedAt,
             });
         } catch (error) {
-          if (
-            error instanceof Error
-          ) {
-            throw new ApplicationError(
-              "CONFLICT",
-              error.message,
-            );
-          }
-
-          throw error;
+          return toConflict(
+            error,
+          );
         }
 
-        const created =
+        const grant =
           await session
-            .createChangeRequest({
+            .createClientPortalGrant({
               businessId:
                 tenantContext.businessId,
               clientId:
@@ -199,21 +225,35 @@ export async function createChangeRequestForTenant(
                 order.id,
               garmentId:
                 garment.id,
-              baselineAgreementVersionId:
-                latestAgreement.id,
-              recordedByMembershipId:
+              changeProposalVersionId:
+                details
+                  .changeProposalVersionId,
+              purpose:
+                details.purpose,
+              tokenHash:
+                details.tokenHash,
+              expiresAt:
+                details.expiresAt,
+              createdByMembershipId:
                 tenantContext.membershipId,
-              ...details,
+              createdAt:
+                issuedAt,
             });
 
-        await session
-          .revokeOtherRequestChangeGrants(
-            client.id,
+        return {
+          clientPortalGrantId:
+            grant.id,
+          rawToken:
+            tokenMaterial.rawToken,
+          purpose:
+            "REQUEST_CHANGE",
+          changeProposalVersionId:
             null,
-            new Date(),
-          );
-
-        return created;
+          expiresAt:
+            grant.expiresAt,
+          createdAt:
+            grant.createdAt,
+        };
       },
     );
 }

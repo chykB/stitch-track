@@ -12,10 +12,14 @@ import {
 import type {
   CreateAppliedAgreementResolutionData,
   CreateAppliedAgreementVersionData,
+  CreateClientPortalGrantData,
   CreateChangeProposalDecisionData,
   CreateChangeProposalVersionData,
   CreateChangeRequestClosureData,
   CreateChangeRequestData,
+  ChangeControlLifecycleRepository,
+  ChangeControlLifecycleScope,
+  ChangeControlLifecycleSession,
 } from "@/change-control/application/ports/change-control-lifecycle-repository";
 import {
   prismaChangeControlHistoryRepository,
@@ -23,6 +27,18 @@ import {
 import {
   prismaChangeControlLifecycleRepository,
 } from "@/change-control/infrastructure/prisma-change-control-lifecycle-repository";
+import {
+  createChangeRequestFromPortal,
+} from "@/change-control/application/use-cases/create-change-request-from-portal";
+import {
+  recordChangeProposalDecisionFromPortal,
+} from "@/change-control/application/use-cases/record-change-proposal-decision-from-portal";
+import {
+  nodeClientPortalTokenService,
+} from "@/change-control/infrastructure/node-client-portal-token-service";
+import {
+  prismaClientRepository,
+} from "@/client/infrastructure/prisma-client-repository";
 import { prisma } from "@/shared/database/prisma";
 
 const BUSINESS_A_ID =
@@ -315,6 +331,107 @@ function closureData(
       MEMBERSHIP_A_ID,
     ...overrides,
   };
+}
+
+function portalGrantData(
+  overrides:
+    Partial<CreateClientPortalGrantData> = {},
+): CreateClientPortalGrantData {
+  return {
+    businessId:
+      BUSINESS_A_ID,
+    clientId:
+      CLIENT_A_ID,
+    orderId:
+      ORDER_A_ID,
+    garmentId:
+      GARMENT_A_ID,
+    changeProposalVersionId:
+      null,
+    purpose:
+      "REQUEST_CHANGE",
+    tokenHash:
+      `portal-${randomUUID()}`,
+    expiresAt:
+      new Date(
+        Date.now() +
+          60 * 60 * 1000,
+      ),
+    createdByMembershipId:
+      MEMBERSHIP_A_ID,
+    createdAt:
+      new Date(),
+    ...overrides,
+  };
+}
+
+async function createPortalGrantWithToken(
+  overrides:
+    Partial<CreateClientPortalGrantData> = {},
+) {
+  const token =
+    nodeClientPortalTokenService
+      .issueToken();
+
+  const grant =
+    await prismaChangeControlLifecycleRepository
+      .withGarmentLifecycle(
+        {
+          businessId:
+            BUSINESS_A_ID,
+          garmentId:
+            GARMENT_A_ID,
+        },
+        (session) =>
+          session
+            .createClientPortalGrant(
+              portalGrantData({
+                ...overrides,
+                tokenHash:
+                  token.tokenHash,
+              }),
+            ),
+      );
+
+  return {
+    rawToken:
+      token.rawToken,
+    tokenHash:
+      token.tokenHash,
+    grant,
+  };
+}
+
+async function createRequestAndProposal() {
+  return prismaChangeControlLifecycleRepository
+    .withGarmentLifecycle(
+      {
+        businessId:
+          BUSINESS_A_ID,
+        garmentId:
+          GARMENT_A_ID,
+      },
+      async (session) => {
+        const request =
+          await session
+            .createChangeRequest(
+              requestData(),
+            );
+
+        const proposal =
+          await session
+            .createChangeProposalVersion(
+              proposalData(
+                request.id,
+              ),
+            );
+
+        return {
+          request,
+          proposal,
+        };
+      },
+    );
 }
 
 async function cleanupMutations():
@@ -1851,6 +1968,1198 @@ describe(
                 result.request.id,
             }),
         ).toBeNull();
+      },
+    );
+
+    it(
+      "persists a ClientPortalGrant inside the Garment lifecycle",
+      async () => {
+        const data =
+          portalGrantData();
+
+        const created =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .createClientPortalGrant(
+                    data,
+                  ),
+            );
+
+        expect(created).toMatchObject({
+          businessId:
+            BUSINESS_A_ID,
+          clientId:
+            CLIENT_A_ID,
+          orderId:
+            ORDER_A_ID,
+          garmentId:
+            GARMENT_A_ID,
+          changeProposalVersionId:
+            null,
+          purpose:
+            "REQUEST_CHANGE",
+          tokenHash:
+            data.tokenHash,
+          consumedAt:
+            null,
+          revokedAt:
+            null,
+          createdByMembershipId:
+            MEMBERSHIP_A_ID,
+        });
+      },
+    );
+
+    it(
+      "discovers a ClientPortalGrant by token hash without treating the read as a lifecycle mutation",
+      async () => {
+        const data =
+          portalGrantData();
+
+        const created =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .createClientPortalGrant(
+                    data,
+                  ),
+            );
+
+        const discovered =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              data.tokenHash,
+            );
+
+        expect(discovered).toEqual(
+          created,
+        );
+      },
+    );
+
+    it(
+      "reloads the discovered ClientPortalGrant inside the locked Garment lifecycle",
+      async () => {
+        const data =
+          portalGrantData();
+
+        const created =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .createClientPortalGrant(
+                    data,
+                  ),
+            );
+
+        const reloaded =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .findClientPortalGrantById(
+                    created.id,
+                  ),
+            );
+
+        expect(reloaded).toEqual(
+          created,
+        );
+      },
+    );
+
+    it(
+      "consumes a ClientPortalGrant exactly once",
+      async () => {
+        const created =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .createClientPortalGrant(
+                    portalGrantData(),
+                  ),
+            );
+
+        const consumedAt =
+          new Date(
+            Date.now() +
+              60 * 1000,
+          );
+
+        const consumed =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .consumeClientPortalGrant(
+                    created.id,
+                    consumedAt,
+                  ),
+            );
+
+        expect(
+          consumed.consumedAt,
+        ).toEqual(
+          consumedAt,
+        );
+
+        await expect(
+          prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .consumeClientPortalGrant(
+                    created.id,
+                    new Date(
+                      consumedAt.getTime() +
+                        1000,
+                    ),
+                  ),
+            ),
+        ).rejects.toThrow(
+          "Client portal grant could not be consumed from its active state.",
+        );
+
+        const persisted =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              created.tokenHash,
+            );
+
+        expect(
+          persisted?.consumedAt,
+        ).toEqual(
+          consumedAt,
+        );
+      },
+    );
+
+    it(
+      "revokes a ClientPortalGrant and prevents later consumption",
+      async () => {
+        const created =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .createClientPortalGrant(
+                    portalGrantData(),
+                  ),
+            );
+
+        const revokedAt =
+          new Date(
+            Date.now() +
+              60 * 1000,
+          );
+
+        const revoked =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .revokeClientPortalGrant(
+                    created.id,
+                    revokedAt,
+                  ),
+            );
+
+        expect(
+          revoked.revokedAt,
+        ).toEqual(
+          revokedAt,
+        );
+
+        expect(
+          revoked.consumedAt,
+        ).toBeNull();
+
+        await expect(
+          prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .consumeClientPortalGrant(
+                    created.id,
+                    new Date(
+                      revokedAt.getTime() +
+                        1000,
+                    ),
+                  ),
+            ),
+        ).rejects.toThrow(
+          "Client portal grant could not be consumed from its active state.",
+        );
+      },
+    );
+
+    it(
+      "rolls back ClientPortalGrant consumption when the Garment lifecycle transaction fails",
+      async () => {
+        const created =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .createClientPortalGrant(
+                    portalGrantData(),
+                  ),
+            );
+
+        await expect(
+          prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              async (session) => {
+                await session
+                  .consumeClientPortalGrant(
+                    created.id,
+                    new Date(
+                      Date.now() +
+                        60 * 1000,
+                    ),
+                  );
+
+                throw new Error(
+                  "Force portal grant rollback.",
+                );
+              },
+            ),
+        ).rejects.toThrow(
+          "Force portal grant rollback.",
+        );
+
+        const persisted =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              created.tokenHash,
+            );
+
+        expect(
+          persisted?.consumedAt,
+        ).toBeNull();
+
+        expect(
+          persisted?.revokedAt,
+        ).toBeNull();
+      },
+    );
+
+    it(
+      "does not expose a ClientPortalGrant through another Garment lifecycle scope",
+      async () => {
+        const created =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              (session) =>
+                session
+                  .createClientPortalGrant(
+                    portalGrantData(),
+                  ),
+            );
+
+        const foreignScopeResult =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_OTHER_ID,
+              },
+              (session) =>
+                session
+                  .findClientPortalGrantById(
+                    created.id,
+                  ),
+            );
+
+        expect(
+          foreignScopeResult,
+        ).toBeNull();
+      },
+    );
+
+
+    it(
+      "revokes other REQUEST_CHANGE grants while preserving the excluded grant",
+      async () => {
+        const firstData =
+          portalGrantData();
+
+        const secondData =
+          portalGrantData();
+
+        const result =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              async (session) => {
+                const first =
+                  await session
+                    .createClientPortalGrant(
+                      firstData,
+                    );
+
+                const second =
+                  await session
+                    .createClientPortalGrant(
+                      secondData,
+                    );
+
+                const revokedAt =
+                  new Date(
+                    Date.now() +
+                      60 * 1000,
+                  );
+
+                await session
+                  .revokeOtherRequestChangeGrants(
+                    CLIENT_A_ID,
+                    first.id,
+                    revokedAt,
+                  );
+
+                return {
+                  first,
+                  second,
+                  revokedAt,
+                };
+              },
+            );
+
+        const first =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              result.first.tokenHash,
+            );
+
+        const second =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              result.second.tokenHash,
+            );
+
+        expect(
+          first?.revokedAt,
+        ).toBeNull();
+
+        expect(
+          second?.revokedAt,
+        ).toEqual(
+          result.revokedAt,
+        );
+      },
+    );
+
+    it(
+      "revokes other DECIDE_CHANGE_PROPOSAL grants while preserving the excluded grant",
+      async () => {
+        const result =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              async (session) => {
+                const request =
+                  await session
+                    .createChangeRequest(
+                      requestData(),
+                    );
+
+                const proposal =
+                  await session
+                    .createChangeProposalVersion(
+                      proposalData(
+                        request.id,
+                      ),
+                    );
+
+                const first =
+                  await session
+                    .createClientPortalGrant({
+                      ...portalGrantData(),
+                      purpose:
+                        "DECIDE_CHANGE_PROPOSAL",
+                      changeProposalVersionId:
+                        proposal.id,
+                    });
+
+                const second =
+                  await session
+                    .createClientPortalGrant({
+                      ...portalGrantData(),
+                      purpose:
+                        "DECIDE_CHANGE_PROPOSAL",
+                      changeProposalVersionId:
+                        proposal.id,
+                    });
+
+                const revokedAt =
+                  new Date(
+                    Date.now() +
+                      60 * 1000,
+                  );
+
+                await session
+                  .revokeOtherDecisionGrantsForProposal(
+                    proposal.id,
+                    first.id,
+                    revokedAt,
+                  );
+
+                return {
+                  first,
+                  second,
+                  revokedAt,
+                };
+              },
+            );
+
+        const first =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              result.first.tokenHash,
+            );
+
+        const second =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              result.second.tokenHash,
+            );
+
+        expect(
+          first?.revokedAt,
+        ).toBeNull();
+
+        expect(
+          second?.revokedAt,
+        ).toEqual(
+          result.revokedAt,
+        );
+      },
+    );
+
+    it(
+      "revokes outstanding decision grants for proposals belonging to a ChangeRequest",
+      async () => {
+        const result =
+          await prismaChangeControlLifecycleRepository
+            .withGarmentLifecycle(
+              {
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+              async (session) => {
+                const request =
+                  await session
+                    .createChangeRequest(
+                      requestData(),
+                    );
+
+                const proposal =
+                  await session
+                    .createChangeProposalVersion(
+                      proposalData(
+                        request.id,
+                      ),
+                    );
+
+                const decisionGrant =
+                  await session
+                    .createClientPortalGrant({
+                      ...portalGrantData(),
+                      purpose:
+                        "DECIDE_CHANGE_PROPOSAL",
+                      changeProposalVersionId:
+                        proposal.id,
+                    });
+
+                const requestGrant =
+                  await session
+                    .createClientPortalGrant(
+                      portalGrantData(),
+                    );
+
+                const revokedAt =
+                  new Date(
+                    Date.now() +
+                      60 * 1000,
+                  );
+
+                await session
+                  .revokeDecisionGrantsForRequest(
+                    request.id,
+                    revokedAt,
+                  );
+
+                return {
+                  decisionGrant,
+                  requestGrant,
+                  revokedAt,
+                };
+              },
+            );
+
+        const decisionGrant =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              result
+                .decisionGrant
+                .tokenHash,
+            );
+
+        const requestGrant =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              result
+                .requestGrant
+                .tokenHash,
+            );
+
+        expect(
+          decisionGrant
+            ?.revokedAt,
+        ).toEqual(
+          result.revokedAt,
+        );
+
+        expect(
+          requestGrant
+            ?.revokedAt,
+        ).toBeNull();
+      },
+    );
+
+
+    it(
+      "executes a REQUEST_CHANGE portal capability once and revokes sibling request grants",
+      async () => {
+        const usedCapability =
+          await createPortalGrantWithToken();
+
+        const siblingCapability =
+          await createPortalGrantWithToken();
+
+        const request =
+          await createChangeRequestFromPortal(
+            prismaChangeControlLifecycleRepository,
+            nodeClientPortalTokenService,
+            {
+              rawToken:
+                usedCapability.rawToken,
+              description:
+                "Please add cape sleeves.",
+            },
+          );
+
+        expect(request).toMatchObject({
+          businessId:
+            BUSINESS_A_ID,
+          clientId:
+            CLIENT_A_ID,
+          orderId:
+            ORDER_A_ID,
+          garmentId:
+            GARMENT_A_ID,
+          baselineAgreementVersionId:
+            BASELINE_AGREEMENT_ID,
+          requestedBy:
+            "CLIENT",
+          origin:
+            "CLIENT_PORTAL",
+          requestChannel:
+            "PORTAL",
+          description:
+            "Please add cape sleeves.",
+          recordedByMembershipId:
+            null,
+        });
+
+        const persistedUsed =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              usedCapability.tokenHash,
+            );
+
+        const persistedSibling =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              siblingCapability.tokenHash,
+            );
+
+        expect(
+          persistedUsed?.consumedAt,
+        ).toBeInstanceOf(
+          Date,
+        );
+
+        expect(
+          persistedUsed?.revokedAt,
+        ).toBeNull();
+
+        expect(
+          persistedSibling?.consumedAt,
+        ).toBeNull();
+
+        expect(
+          persistedSibling?.revokedAt,
+        ).toBeInstanceOf(
+          Date,
+        );
+
+        await expect(
+          createChangeRequestFromPortal(
+            prismaChangeControlLifecycleRepository,
+            nodeClientPortalTokenService,
+            {
+              rawToken:
+                usedCapability.rawToken,
+              description:
+                "Attempt to reuse link.",
+            },
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "NOT_FOUND",
+        });
+
+        expect(
+          await countRows(
+            "change_request",
+          ),
+        ).toBe(1);
+      },
+    );
+
+    it(
+      "executes a portal rejection once, consumes the used grant, and revokes sibling decision grants",
+      async () => {
+        const {
+          request,
+          proposal,
+        } =
+          await createRequestAndProposal();
+
+        const usedCapability =
+          await createPortalGrantWithToken({
+            purpose:
+              "DECIDE_CHANGE_PROPOSAL",
+            changeProposalVersionId:
+              proposal.id,
+          });
+
+        const siblingCapability =
+          await createPortalGrantWithToken({
+            purpose:
+              "DECIDE_CHANGE_PROPOSAL",
+            changeProposalVersionId:
+              proposal.id,
+          });
+
+        const result =
+          await recordChangeProposalDecisionFromPortal(
+            prismaClientRepository,
+            prismaChangeControlLifecycleRepository,
+            nodeClientPortalTokenService,
+            {
+              rawToken:
+                usedCapability.rawToken,
+              outcome:
+                "REJECTED",
+              clientNote:
+                "Please reduce the sleeve cost.",
+            },
+          );
+
+        expect(result).toMatchObject({
+          outcome:
+            "REJECTED",
+          appliedAgreementVersionId:
+            null,
+        });
+
+        const decision =
+          await prismaChangeControlHistoryRepository
+            .findDecisionForProposal({
+              businessId:
+                BUSINESS_A_ID,
+              changeProposalVersionId:
+                proposal.id,
+            });
+
+        expect(decision).toMatchObject({
+          businessId:
+            BUSINESS_A_ID,
+          changeProposalVersionId:
+            proposal.id,
+          outcome:
+            "REJECTED",
+          clientNameSnapshot:
+            "Ada Okafor",
+          decisionSource:
+            "CLIENT_PORTAL",
+          clientDecisionChannel:
+            "PORTAL",
+          recordedByMembershipId:
+            null,
+          portalGrantId:
+            usedCapability.grant.id,
+        });
+
+        const persistedUsed =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              usedCapability.tokenHash,
+            );
+
+        const persistedSibling =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              siblingCapability.tokenHash,
+            );
+
+        expect(
+          persistedUsed?.consumedAt,
+        ).toBeInstanceOf(
+          Date,
+        );
+
+        expect(
+          persistedUsed?.revokedAt,
+        ).toBeNull();
+
+        expect(
+          persistedSibling?.consumedAt,
+        ).toBeNull();
+
+        expect(
+          persistedSibling?.revokedAt,
+        ).toBeInstanceOf(
+          Date,
+        );
+
+        await expect(
+          recordChangeProposalDecisionFromPortal(
+            prismaClientRepository,
+            prismaChangeControlLifecycleRepository,
+            nodeClientPortalTokenService,
+            {
+              rawToken:
+                usedCapability.rawToken,
+              outcome:
+                "REJECTED",
+            },
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "NOT_FOUND",
+        });
+
+        expect(
+          await activeSlotFor(
+            request.id,
+          ),
+        ).toBe(
+          "ACTIVE",
+        );
+
+        expect(
+          await countAppliedAgreements(),
+        ).toBe(0);
+
+        expect(
+          await countAppliedResolutions(),
+        ).toBe(0);
+      },
+    );
+
+    it(
+      "applies a portal approval atomically and derives generated resolution recorder provenance from the grant creator",
+      async () => {
+        const {
+          request,
+          proposal,
+        } =
+          await createRequestAndProposal();
+
+        const usedCapability =
+          await createPortalGrantWithToken({
+            purpose:
+              "DECIDE_CHANGE_PROPOSAL",
+            changeProposalVersionId:
+              proposal.id,
+          });
+
+        const siblingCapability =
+          await createPortalGrantWithToken({
+            purpose:
+              "DECIDE_CHANGE_PROPOSAL",
+            changeProposalVersionId:
+              proposal.id,
+          });
+
+        const result =
+          await recordChangeProposalDecisionFromPortal(
+            prismaClientRepository,
+            prismaChangeControlLifecycleRepository,
+            nodeClientPortalTokenService,
+            {
+              rawToken:
+                usedCapability.rawToken,
+              outcome:
+                "APPROVED",
+              clientNote:
+                "Approved with the updated sleeve.",
+            },
+          );
+
+        expect(
+          result.outcome,
+        ).toBe(
+          "APPROVED",
+        );
+
+        if (
+          !result.appliedAgreementVersionId
+        ) {
+          throw new Error(
+            "Expected portal approval to create an amended AgreementVersion.",
+          );
+        }
+
+        const decision =
+          await prismaChangeControlHistoryRepository
+            .findDecisionForProposal({
+              businessId:
+                BUSINESS_A_ID,
+              changeProposalVersionId:
+                proposal.id,
+            });
+
+        expect(decision).toMatchObject({
+          outcome:
+            "APPROVED",
+          decisionSource:
+            "CLIENT_PORTAL",
+          clientDecisionChannel:
+            "PORTAL",
+          recordedByMembershipId:
+            null,
+          portalGrantId:
+            usedCapability.grant.id,
+        });
+
+        const amendedAgreement =
+          await prisma
+            .agreementVersion
+            .findFirst({
+              where: {
+                id:
+                  result
+                    .appliedAgreementVersionId,
+                businessId:
+                  BUSINESS_A_ID,
+                garmentId:
+                  GARMENT_A_ID,
+              },
+            });
+
+        expect(
+          amendedAgreement,
+        ).toMatchObject({
+          revisionNumber:
+            2,
+          supersedesAgreementVersionId:
+            BASELINE_AGREEMENT_ID,
+          designSummary:
+            "Structured long sleeve gown",
+          currency:
+            "NGN",
+        });
+
+        const generatedResolution =
+          await prisma
+            .agreementResolution
+            .findFirst({
+              where: {
+                businessId:
+                  BUSINESS_A_ID,
+                agreementVersionId:
+                  result
+                    .appliedAgreementVersionId,
+              },
+            });
+
+        expect(
+          generatedResolution,
+        ).toMatchObject({
+          outcome:
+            "APPROVED",
+          clientNameSnapshot:
+            "Ada Okafor",
+          clientDecisionChannel:
+            "PORTAL",
+          recordedByMembershipId:
+            MEMBERSHIP_A_ID,
+        });
+
+        const persistedUsed =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              usedCapability.tokenHash,
+            );
+
+        const persistedSibling =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              siblingCapability.tokenHash,
+            );
+
+        expect(
+          persistedUsed?.consumedAt,
+        ).toBeInstanceOf(
+          Date,
+        );
+
+        expect(
+          persistedSibling?.revokedAt,
+        ).toBeInstanceOf(
+          Date,
+        );
+
+        expect(
+          await activeSlotFor(
+            request.id,
+          ),
+        ).toBeNull();
+
+        expect(
+          await countRows(
+            "change_proposal_decision",
+          ),
+        ).toBe(1);
+
+        expect(
+          await countAppliedAgreements(),
+        ).toBe(1);
+
+        expect(
+          await countAppliedResolutions(),
+        ).toBe(1);
+      },
+    );
+
+    it(
+      "rolls back portal approval decision, grant consumption, amended agreement, and resolution on a late transaction failure",
+      async () => {
+        const {
+          request,
+          proposal,
+        } =
+          await createRequestAndProposal();
+
+        const capability =
+          await createPortalGrantWithToken({
+            purpose:
+              "DECIDE_CHANGE_PROPOSAL",
+            changeProposalVersionId:
+              proposal.id,
+          });
+
+        const failingLifecycleRepository:
+          ChangeControlLifecycleRepository = {
+            findClientPortalGrantByTokenHash(
+              tokenHash,
+            ) {
+              return prismaChangeControlLifecycleRepository
+                .findClientPortalGrantByTokenHash(
+                  tokenHash,
+                );
+            },
+
+            async withGarmentLifecycle<T>(
+              scope:
+                ChangeControlLifecycleScope,
+              operation: (
+                session:
+                  ChangeControlLifecycleSession,
+              ) => Promise<T>,
+            ): Promise<T> {
+              return prismaChangeControlLifecycleRepository
+                .withGarmentLifecycle(
+                  scope,
+                  async (session) =>
+                    operation({
+                      ...session,
+
+                      async createAppliedAgreementResolution() {
+                        throw new Error(
+                          "Force late portal approval rollback.",
+                        );
+                      },
+                    }),
+                );
+            },
+          };
+
+        await expect(
+          recordChangeProposalDecisionFromPortal(
+            prismaClientRepository,
+            failingLifecycleRepository,
+            nodeClientPortalTokenService,
+            {
+              rawToken:
+                capability.rawToken,
+              outcome:
+                "APPROVED",
+              clientNote:
+                "Approval that must roll back.",
+            },
+          ),
+        ).rejects.toMatchObject({
+          code:
+            "CONFLICT",
+        });
+
+        const persistedGrant =
+          await prismaChangeControlLifecycleRepository
+            .findClientPortalGrantByTokenHash(
+              capability.tokenHash,
+            );
+
+        expect(
+          persistedGrant?.consumedAt,
+        ).toBeNull();
+
+        expect(
+          persistedGrant?.revokedAt,
+        ).toBeNull();
+
+        expect(
+          await prismaChangeControlHistoryRepository
+            .findDecisionForProposal({
+              businessId:
+                BUSINESS_A_ID,
+              changeProposalVersionId:
+                proposal.id,
+            }),
+        ).toBeNull();
+
+        expect(
+          await countRows(
+            "change_proposal_decision",
+          ),
+        ).toBe(0);
+
+        expect(
+          await countAppliedAgreements(),
+        ).toBe(0);
+
+        expect(
+          await countAppliedResolutions(),
+        ).toBe(0);
+
+        expect(
+          await activeSlotFor(
+            request.id,
+          ),
+        ).toBe(
+          "ACTIVE",
+        );
       },
     );
 
