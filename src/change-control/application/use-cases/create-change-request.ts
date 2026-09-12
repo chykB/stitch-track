@@ -13,13 +13,15 @@ import {
 import type {
   TenantContext,
 } from "../../../shared/application/tenancy/tenant-context";
-import {
-  normalizeChangeRequestDetails,
-  type ChangeRequest,
+import type {
+  ChangeRequest,
 } from "../../domain/change-request";
 import type {
   ChangeControlLifecycleRepository,
 } from "../ports/change-control-lifecycle-repository";
+import {
+  createBusinessRecordedChangeRequestInLifecycle,
+} from "./create-business-recorded-change-request-in-lifecycle";
 
 export type CreateChangeRequestRequest =
   Readonly<{
@@ -98,122 +100,29 @@ export async function createChangeRequestForTenant(
         garmentId:
           garment.id,
       },
-      async (session) => {
-        const latestAgreement =
-          await session
-            .findLatestAgreementVersion();
-
-        if (!latestAgreement) {
-          throw new ApplicationError(
-            "CONFLICT",
-            "An approved agreement is required before recording a post-approval change.",
-          );
-        }
-
-        if (
-          latestAgreement.businessId !==
-            tenantContext.businessId ||
-          latestAgreement.garmentId !==
-            garment.id ||
-          latestAgreement.orderId !==
-            order.id ||
-          latestAgreement.clientId !==
-            client.id
-        ) {
-          throw new ApplicationError(
-            "NOT_FOUND",
-            "Current agreement was not found for this garment.",
-          );
-        }
-
-        const baselineResolution =
-          await session
-            .findAgreementResolutionForVersion(
-              latestAgreement.id,
-            );
-
-        if (
-          !baselineResolution ||
-          baselineResolution.outcome !==
-            "APPROVED"
-        ) {
-          throw new ApplicationError(
-            "CONFLICT",
-            "The current agreement must be approved before starting change control.",
-          );
-        }
-
-        const activeRequest =
-          await session
-            .findActiveChangeRequest();
-
-        if (activeRequest) {
-          throw new ApplicationError(
-            "CONFLICT",
-            "This garment already has an active change request.",
-          );
-        }
-
-        let details;
-
-        try {
-          details =
-            normalizeChangeRequestDetails({
-              requestedBy:
-                request.requestedBy,
-              origin:
-                "BUSINESS_RECORDED",
-              requestChannel:
-                request.requestChannel,
-              description:
-                request.description,
-              requestedAt:
-                request.requestedAt,
-              baselineResolutionOccurredAt:
-                baselineResolution
-                  .occurredAt,
-              now:
-                new Date(),
-            });
-        } catch (error) {
-          if (
-            error instanceof Error
-          ) {
-            throw new ApplicationError(
-              "CONFLICT",
-              error.message,
-            );
-          }
-
-          throw error;
-        }
-
-        const created =
-          await session
-            .createChangeRequest({
-              businessId:
-                tenantContext.businessId,
-              clientId:
-                client.id,
-              orderId:
-                order.id,
-              garmentId:
-                garment.id,
-              baselineAgreementVersionId:
-                latestAgreement.id,
-              recordedByMembershipId:
-                tenantContext.membershipId,
-              ...details,
-            });
-
-        await session
-          .revokeOtherRequestChangeGrants(
-            client.id,
-            null,
-            new Date(),
-          );
-
-        return created;
-      },
+      (session) =>
+        createBusinessRecordedChangeRequestInLifecycle(
+          session,
+          {
+            businessId:
+              tenantContext.businessId,
+            clientId:
+              client.id,
+            orderId:
+              order.id,
+            garmentId:
+              garment.id,
+            recordedByMembershipId:
+              tenantContext.membershipId,
+            requestedBy:
+              request.requestedBy,
+            requestChannel:
+              request.requestChannel,
+            description:
+              request.description,
+            requestedAt:
+              request.requestedAt,
+          },
+        ),
     );
 }

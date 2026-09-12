@@ -218,6 +218,16 @@ export interface ChangeControlLifecycleSession {
   ): Promise<void>;
 }
 
+export type BusinessRecordedChangeRequestLifecycleSession =
+  Pick<
+    ChangeControlLifecycleSession,
+    | "findLatestAgreementVersion"
+    | "findAgreementResolutionForVersion"
+    | "findActiveChangeRequest"
+    | "createChangeRequest"
+    | "revokeOtherRequestChangeGrants"
+  >;
+
 export interface ChangeControlLifecycleRepository {
   findClientPortalGrantByTokenHash(
     tokenHash: string,
